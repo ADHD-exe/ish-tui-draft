@@ -1,294 +1,457 @@
-## Preflight / Package Baseline Prompts
 
-### 0. Welcome
 
-```text
-Preflight prepares iSH before the rest of setup.
+---
 
-It can:
-- check Alpine/iSH environment
-- refresh apk package indexes
-- install TLS certificates
-- install basic tools
-- verify network access
-- create installer log/state directories
+# 1. High-level assessment
+
+### What’s solid
+
+* Coverage is **comprehensive** (users, shells, git, ssh, w3m, clipboard, mounts, OpenRC)
+* You correctly:
+
+  * treat **OpenRC as optional**
+  * separate **user creation vs shell config**
+  * include **guest user model**
+  * include **iSH-specific constraints (mounts, clipboard, persistence limits)**
+
+### What’s currently weak
+
+* Module **ordering is inconsistent**
+* Some modules are **duplicated or overlapping**
+* No **clear dependency graph**
+* No **state model enforcement**
+* Several modules are **too tightly coupled** (Git ↔ SSH, Aliases ↔ Shells)
+
+---
+
+# 2. Critical structural issues (must fix)
+
+## 2.1 Duplicate / conflicting modules
+
+### Problem
+
+* “Aliases” appears more than once
+* Git and SSH both try to handle key generation
+* Clipboard + mount + aliases overlap responsibilities
+
+### Fix
+
+Define **single ownership per concern**:
+
+| Concern         | Owner Module          |
+| --------------- | --------------------- |
+| SSH keys        | SSH module            |
+| Git identity    | Git module            |
+| Aliases         | Global Aliases module |
+| Mount paths     | iOS Mount module      |
+| Clipboard logic | Clipboard module      |
+
+---
+
+## 2.2 Missing dependency ordering
+
+Your modules are currently *listed*, not **sequenced**.
+
+### Required dependency graph (non-negotiable)
+
+```
+Preflight
+  ↓
+Users
+  ↓
+Privileges (doas/sudo)
+  ↓
+Filesystem layout
+  ↓
+Core packages
+  ↓
+Shells (install only)
+  ↓
+Aliases (registry only)
+  ↓
+Docs (man/mandoc)
+  ↓
+SSH
+  ↓
+Git (depends on SSH)
+  ↓
+Mounts
+  ↓
+Clipboard (depends on mounts)
+  ↓
+w3m
+  ↓
+Shell config rendering
+  ↓
+OpenRC
+  ↓
+Validation
 ```
 
 ---
 
-# 1. Run preflight?
+## 2.3 Shell config timing (major bug risk)
+
+### Problem
+
+Your draft implies shell configs may be written early.
+
+### This will break:
+
+* aliases not yet defined
+* git not configured
+* paths not finalized
+* clipboard helpers missing
+
+### Fix
+
+Split shell module:
+
+#### Phase A — install shells
 
 ```text
-Run Preflight & Package Baseline now?
-
-1) Yes, recommended
-2) Skip and continue
-3) Show details first
+Install bash/zsh/fish
+Choose default shells per user
 ```
 
-Default: `1`
-
----
-
-# 2. Package index update
+#### Phase B — configure shells (VERY LATE)
 
 ```text
-Update apk package indexes?
-
-This runs:
-apk update
-
-1) Yes, recommended
-2) Skip and continue
-```
-
-Default: `1`
-
----
-
-# 3. Upgrade existing packages
-
-```text
-Upgrade already-installed packages?
-
-This runs:
-apk upgrade
-
-1) Yes, recommended
-2) Skip and continue
-3) Ask me later before upgrading
-```
-
-Default: `1`
-
----
-
-# 4. Install TLS certificates
-
-```text
-Install and refresh TLS certificates?
-
-This installs:
-ca-certificates
-
-Then runs:
-update-ca-certificates
-
-Required for HTTPS, GitHub, curl, wget, SSH, and many package downloads.
-
-1) Yes, recommended
-2) Skip and continue
-```
-
-Default: `1`
-
----
-
-# 5. Install core tools
-
-```text
-Install core setup tools?
-
-Recommended packages:
-- curl
-- wget
-- git
-- openssh-client
-- less
-- nano
-
-1) Install recommended core tools
-2) Choose packages manually
-3) Skip and continue
-```
-
-Default: `1`
-
----
-
-# 6. Optional core tools
-
-```text
-Install optional convenience tools?
-
-Optional packages:
-- bash
-- file
-- grep
-- sed
-- gawk
-- tar
-- xz
-- unzip
-- zip
-- shadow
-- util-linux
-- procps
-- ncurses
-- ncurses-terminfo-base
-
-1) Install recommended optional tools
-2) Choose packages manually
-3) Skip and continue
-```
-
-Default: `1`
-
----
-
-# 7. Build tools
-
-```text
-Install build tools?
-
-Useful for compiling small programs, Go/Rust/C projects, and some source installs.
-
-Packages:
-- build-base
-- make
-- gcc
-- musl-dev
-- linux-headers
-- pkgconf
-
-1) Yes
-2) No, skip and continue
-3) Ask me later when needed
-```
-
-Default: `3`
-
----
-
-# 8. Network check
-
-```text
-Check internet connectivity?
-
-Tests:
-- apk repository access
-- HTTPS access
-- GitHub access
-
-1) Yes, recommended
-2) Skip and continue
-```
-
-Default: `1`
-
----
-
-# 9. Alpine repository branch check
-
-```text
-Check Alpine repository branch?
-
-iSH commonly works best pinned to Alpine 3.14 repositories.
-
-1) Check only
-2) Check and offer repair if not 3.14
-3) Skip and continue
-```
-
-Default: `1`
-
----
-
-# 10. Create setup directories
-
-```text
-Create iOSiSH setup directories?
-
-Recommended directories:
-- /var/lib/iosish
-- /var/lib/iosish/state
-- /var/lib/iosish/logs
-- /etc/iosish
-- /usr/local/lib/iosish
-- /usr/local/bin
-
-1) Yes, recommended
-2) Skip and continue
-```
-
-Default: `1`
-
----
-
-# 11. Logging
-
-```text
-Enable setup logging?
-
-Logs will be saved to:
-/var/lib/iosish/logs/install.log
-
-1) Yes, recommended
-2) Skip and continue
-```
-
-Default: `1`
-
----
-
-# 12. Save preflight state
-
-```text
-Save preflight results for later modules?
-
-This lets the TUI know:
-- which packages are installed
-- whether network works
-- whether certificates are ready
-- whether apk repositories look correct
-
-1) Yes, recommended
-2) Skip and continue
-```
-
-Default: `1`
-
----
-
-# Recommended preflight package sets
-
-## Minimal baseline
-
-```sh
-ca-certificates curl wget git openssh-client less nano
-```
-
-## Recommended baseline
-
-```sh
-ca-certificates curl wget git openssh-client less nano bash file grep sed gawk tar xz unzip zip shadow
-```
-
-## Extended baseline
-
-```sh
-ca-certificates curl wget git openssh-client less nano bash file grep sed gawk tar xz unzip zip shadow util-linux procps ncurses ncurses-terminfo-base
-```
-
-## Build baseline
-
-```sh
-build-base make gcc musl-dev linux-headers pkgconf
+Render configs using:
+- alias registry
+- env registry
+- tool detection
 ```
 
 ---
 
-# Best default flow
+## 2.4 No state system (this will break re-runs)
+
+### Problem
+
+You don’t persist decisions.
+
+### Consequence
+
+* reruns overwrite configs
+* modules cannot detect prior state
+* no repair mode possible
+
+### Fix
+
+Add:
 
 ```text
-1) apk update
-2) apk upgrade
-3) install ca-certificates
-4) update-ca-certificates
-5) install recommended baseline packages
-6) check network
-7) check Alpine branch
-8) create setup dirs
-9) enable logging
-10) write preflight state
+/var/lib/iosish/state/
 ```
+
+Files:
+
+```text
+users.conf
+shells.conf
+packages.conf
+features.conf
+mounts.conf
+```
+
+Each module:
+
+* reads state
+* updates state
+* never assumes fresh system
+
+---
+
+## 2.5 No validation phase
+
+### Problem
+
+Installer ends without verification.
+
+### Fix
+
+Add final module:
+
+```text
+Validation & Summary
+```
+
+Checks:
+
+* users exist
+* shell paths valid
+* doas/sudo works
+* git identity set
+* ssh works
+* mounts accessible
+* clipboard functional
+* aliases loaded
+
+---
+
+# 3. Corrected module order (final recommendation)
+
+This is the version you should implement.
+
+---
+
+## Phase 0 — Preflight
+
+* apk update/upgrade
+* certs
+* base tools
+* logging + state init
+
+---
+
+## Phase 1 — System Identity
+
+* hostname
+* environment label (optional)
+
+---
+
+## Phase 2 — Users
+
+* root policy
+* primary user
+* guest user
+* launch account
+
+---
+
+## Phase 3 — Privileges
+
+* doas (default)
+* sudo (optional)
+* wheel assignment
+
+---
+
+## Phase 4 — Filesystem Layout
+
+* ~/.config
+* ~/.local/bin
+* ~/.cache
+* /var/lib/iosish
+
+---
+
+## Phase 5 — Core Packages
+
+* curl, git, etc.
+* optional build tools
+
+---
+
+## Phase 6 — Shell Installation (ONLY install)
+
+* bash/zsh/fish
+* set default shell
+
+---
+
+## Phase 7 — Global Registries (NEW CRITICAL LAYER)
+
+Create:
+
+### Alias registry
+
+```text
+/var/lib/iosish/aliases.conf
+```
+
+### Env registry
+
+```text
+/var/lib/iosish/env.conf
+```
+
+Modules write here instead of touching shell configs.
+
+---
+
+## Phase 8 — Man / Docs
+
+---
+
+## Phase 9 — SSH (single owner of keys)
+
+---
+
+## Phase 10 — Git (uses SSH, does not recreate keys)
+
+---
+
+## Phase 11 — iOS Mount
+
+---
+
+## Phase 12 — Clipboard (depends on mount)
+
+---
+
+## Phase 13 — w3m
+
+---
+
+## Phase 14 — Shell Config Rendering (CRITICAL)
+
+Now generate:
+
+* `.bashrc`
+* `.zshrc`
+* `config.fish`
+
+Using:
+
+* alias registry
+* env registry
+* installed tools
+
+---
+
+## Phase 15 — OpenRC
+
+---
+
+## Phase 16 — Validation + Summary
+
+---
+
+# 4. Prompt improvements (specific)
+
+## Add “mode selection” early
+
+```text
+1) Quick setup (recommended defaults)
+2) Guided setup
+3) Manual module selection
+4) Repair existing setup
+```
+
+---
+
+## Add “skip but remember” behavior
+
+Every prompt should support:
+
+```text
+3) Skip and remember choice
+```
+
+Stored in state.
+
+---
+
+## Add “apply to which users”
+
+For every module:
+
+```text
+Apply to:
+1) root
+2) primary user
+3) guest user
+4) multiple (select)
+```
+
+---
+
+# 5. iSH-specific corrections
+
+## SSH server warning
+
+You correctly note it, but enforce:
+
+```text
+Default: disabled
+Require explicit confirmation
+```
+
+---
+
+## OpenRC expectations
+
+Do NOT imply:
+
+* full boot system
+* persistent services
+
+Clarify:
+
+* session-based activation
+
+---
+
+## Mount persistence
+
+Correct:
+
+* no persistence in mount module
+* OpenRC handles persistence later
+
+---
+
+# 6. Missing features you should add
+
+### 6.1 Repair mode
+
+* re-run specific modules
+* detect broken configs
+
+### 6.2 Backup system
+
+Before modifying:
+
+```text
+~/.bashrc → ~/.bashrc.bak.timestamp
+```
+
+### 6.3 Idempotency
+
+Every module must:
+
+* detect existing config
+* avoid duplicate writes
+
+---
+
+# 7. Biggest architectural recommendation
+
+## Move to a 3-layer model
+
+### Layer 1 — State
+
+* user choices
+
+### Layer 2 — Registries
+
+* aliases
+* env vars
+* features
+
+### Layer 3 — Renderers
+
+* shell configs
+* service configs
+
+---
+
+# 8. Summary of required changes
+
+You should:
+
+* Remove duplicate modules
+* Enforce strict module order
+* Split shell install vs config
+* Add state system
+* Add alias/env registries
+* Add validation phase
+* Decouple SSH from Git
+* Add repair + backup logic
+
+---
+
+
