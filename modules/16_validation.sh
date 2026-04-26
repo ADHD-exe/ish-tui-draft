@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=validation
+MODULE_STD_TITLE="Validation"
+. "$MODULE_DIR/_module_interface.sh"
+
 VALIDATION_REPORT=${VALIDATION_REPORT:-/var/lib/iosish/logs/install-summary.txt}
 
 module_describe() {

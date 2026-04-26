@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=privileges
+MODULE_STD_TITLE="Privileges"
+. "$MODULE_DIR/_module_interface.sh"
+
 PRIV_TOOL_MODE=${PRIV_TOOL_MODE:-1}
 PRIV_ADMIN_GROUP_MODE=${PRIV_ADMIN_GROUP_MODE:-1}
 PRIV_ADMIN_GROUP_NAME=${PRIV_ADMIN_GROUP_NAME:-wheel}
@@ -11,6 +15,44 @@ PRIV_TEST_MODE=${PRIV_TEST_MODE:-2}
 
 module_describe() {
     printf '%s\n' "Installs doas and/or sudo, prepares the admin group, and writes idempotent privilege policy files with backups."
+}
+
+write_managed_block_file() {
+    target_path=$1
+    block_name=$2
+    block_content=$3
+    begin_marker="# >>> ish-tui ${block_name} >>>"
+    end_marker="# <<< ish-tui ${block_name} <<<"
+    tmp_file="${TMPDIR:-/tmp}/ish-tui-managed.$$"
+
+    ensure_parent_dir "$target_path"
+
+    if [ -f "$target_path" ]; then
+        awk -v begin="$begin_marker" -v end="$end_marker" '
+            $0 == begin { skip=1; next }
+            $0 == end { skip=0; next }
+            !skip { print }
+        ' "$target_path" > "$tmp_file"
+        if [ -s "$tmp_file" ]; then
+            printf '\n' >> "$tmp_file"
+        fi
+    else
+        : > "$tmp_file"
+    fi
+
+    {
+        printf '%s\n' "$begin_marker"
+        printf '%s\n' "$block_content"
+        printf '%s\n' "$end_marker"
+    } >> "$tmp_file"
+
+    if [ -f "$target_path" ] && cmp -s "$tmp_file" "$target_path"; then
+        rm -f "$tmp_file"
+        return 0
+    fi
+
+    backup_file "$target_path"
+    mv "$tmp_file" "$target_path"
 }
 
 module_detect() {
@@ -87,9 +129,9 @@ add_user_to_group_if_needed() {
 
 module_apply() {
     case "$PRIV_TOOL_MODE" in
-        1) apk_add_if_missing doas || true ;;
-        2) apk_add_if_missing sudo || true ;;
-        3) apk_add_if_missing doas sudo || true ;;
+        1) apk_add_if_missing_or_partial doas || true ;;
+        2) apk_add_if_missing_or_partial sudo || true ;;
+        3) apk_add_if_missing_or_partial doas sudo || true ;;
         4) ;;
     esac
 
@@ -113,7 +155,7 @@ module_apply() {
             *) doas_line= ;;
         esac
         if [ -n "$doas_line" ]; then
-            write_file_if_changed /etc/doas.conf "$(printf '%s\n' "$doas_line")"
+            write_managed_block_file /etc/doas.conf "privileges" "$doas_line"
             chmod 600 /etc/doas.conf 2>/dev/null || true
         fi
     fi
@@ -125,7 +167,7 @@ module_apply() {
             *) sudo_line= ;;
         esac
         if [ -n "$sudo_line" ]; then
-            write_file_if_changed /etc/sudoers.d/wheel "$(printf '%s\n' "$sudo_line")"
+            write_managed_block_file /etc/sudoers.d/wheel "privileges" "$sudo_line"
             chmod 440 /etc/sudoers.d/wheel 2>/dev/null || true
         fi
     fi
@@ -150,7 +192,7 @@ module_save_state() {
     state_set "$STATE_SERVICES_FILE" "privileges.guest_admin" "$PRIV_ADD_GUEST"
     state_set "$STATE_SERVICES_FILE" "privileges.doas_policy" "$PRIV_DOAS_POLICY"
     state_set "$STATE_SERVICES_FILE" "privileges.sudo_policy" "$PRIV_SUDO_POLICY"
-    state_set "$STATE_SERVICES_FILE" "privileges.status" "complete"
+    state_set "$STATE_SERVICES_FILE" "privileges.status" "$(module_state_status)"
     return 0
 }
 

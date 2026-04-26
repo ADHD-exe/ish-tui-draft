@@ -41,3 +41,11 @@ apk_add_if_missing() {
     # shellcheck disable=SC2086
     apk_safe_run add $missing_packages
 }
+
+apk_add_if_missing_or_partial() {
+    if ! apk_add_if_missing "$@"; then
+        module_mark_partial
+        return 1
+    fi
+    return 0
+}

@@ -1,6 +1,13 @@
 #!/bin/sh
 
-LOG_ROOT=${IOSISH_LOG_ROOT:-/var/lib/iosish/logs}
+if [ -n "${IOSISH_LOG_ROOT:-}" ]; then
+    LOG_ROOT=$IOSISH_LOG_ROOT
+elif [ "$(id -u 2>/dev/null || printf '%s' 1)" -eq 0 ]; then
+    LOG_ROOT=/var/lib/iosish/logs
+else
+    LOG_ROOT=${HOME:-/tmp}/.local/state/iosish/logs
+fi
+
 LOG_FILE=${IOSISH_LOG_FILE:-$LOG_ROOT/install.log}
 
 timestamp() {
@@ -8,8 +15,8 @@ timestamp() {
 }
 
 init_logs() {
-    mkdir -p "$LOG_ROOT" 2>/dev/null || true
-    touch "$LOG_FILE" 2>/dev/null || true
+    mkdir -p "$LOG_ROOT"
+    touch "$LOG_FILE"
 }
 
 log_line() {

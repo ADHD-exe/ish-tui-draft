@@ -21,6 +21,7 @@ printf '6\n' | sh "$ROOT_DIR/ish-tui.sh" >/dev/null
 . "$ROOT_DIR/lib/state.sh"
 . "$ROOT_DIR/lib/registry.sh"
 . "$ROOT_DIR/lib/accounts.sh"
+MODULE_DIR="$ROOT_DIR/modules"
 . "$ROOT_DIR/modules/14_shell_rendering.sh"
 
 init_state_dirs

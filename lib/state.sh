@@ -1,6 +1,13 @@
 #!/bin/sh
 
-STATE_ROOT=${IOSISH_STATE_ROOT:-/var/lib/iosish/state}
+if [ -n "${IOSISH_STATE_ROOT:-}" ]; then
+    STATE_ROOT=$IOSISH_STATE_ROOT
+elif [ "$(id -u 2>/dev/null || printf '%s' 1)" -eq 0 ]; then
+    STATE_ROOT=/var/lib/iosish/state
+else
+    STATE_ROOT=${HOME:-/tmp}/.local/state/iosish/state
+fi
+
 STATE_USERS_FILE=$STATE_ROOT/users.conf
 STATE_SHELLS_FILE=$STATE_ROOT/shells.conf
 STATE_PACKAGES_FILE=$STATE_ROOT/packages.conf
@@ -8,7 +15,7 @@ STATE_FEATURES_FILE=$STATE_ROOT/features.conf
 STATE_SERVICES_FILE=$STATE_ROOT/services.conf
 
 init_state_dirs() {
-    mkdir -p "$STATE_ROOT" 2>/dev/null || true
+    mkdir -p "$STATE_ROOT"
     ensure_file "$STATE_USERS_FILE"
     ensure_file "$STATE_SHELLS_FILE"
     ensure_file "$STATE_PACKAGES_FILE"
@@ -19,7 +26,7 @@ init_state_dirs() {
 ensure_file() {
     file_path=$1
     if [ ! -f "$file_path" ]; then
-        : > "$file_path" 2>/dev/null || true
+        : > "$file_path"
     fi
 }
 
@@ -37,7 +44,7 @@ state_set() {
     key=$2
     value=$3
     ensure_file "$file_path"
-    tmp_file="${TMPDIR:-/tmp}/ish-tui-state.$$"
+    tmp_file=$(mktemp "${TMPDIR:-/tmp}/ish-tui-state.XXXXXX")
     awk -F= -v search_key="$key" -v new_value="$value" '
         BEGIN { updated=0 }
         $1 == search_key { print search_key "=" new_value; updated=1; next }

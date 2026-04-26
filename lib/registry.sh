@@ -1,12 +1,19 @@
 #!/bin/sh
 
-REGISTRY_ROOT=${IOSISH_REGISTRY_ROOT:-/var/lib/iosish/registry}
+if [ -n "${IOSISH_REGISTRY_ROOT:-}" ]; then
+    REGISTRY_ROOT=$IOSISH_REGISTRY_ROOT
+elif [ "$(id -u 2>/dev/null || printf '%s' 1)" -eq 0 ]; then
+    REGISTRY_ROOT=/var/lib/iosish/registry
+else
+    REGISTRY_ROOT=${HOME:-/tmp}/.local/state/iosish/registry
+fi
+
 ALIASES_REGISTRY=$REGISTRY_ROOT/aliases.conf
 ENV_REGISTRY=$REGISTRY_ROOT/env.conf
 HELPERS_REGISTRY=$REGISTRY_ROOT/helpers.conf
 
 init_registry_dirs() {
-    mkdir -p "$REGISTRY_ROOT" 2>/dev/null || true
+    mkdir -p "$REGISTRY_ROOT"
     ensure_file "$ALIASES_REGISTRY"
     ensure_file "$ENV_REGISTRY"
     ensure_file "$HELPERS_REGISTRY"

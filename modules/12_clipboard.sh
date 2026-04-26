@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=clipboard
+MODULE_STD_TITLE="Clipboard"
+. "$MODULE_DIR/_module_interface.sh"
+
 CLIP_MODE=${CLIP_MODE:-2}
 CLIP_USE_CASE=${CLIP_USE_CASE:-3}
 CLIP_SCOPE=${CLIP_SCOPE:-2}

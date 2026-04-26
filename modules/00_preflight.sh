@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=preflight
+MODULE_STD_TITLE="Preflight"
+. "$MODULE_DIR/_module_interface.sh"
+
 PREFLIGHT_UPDATE_INDEX=${PREFLIGHT_UPDATE_INDEX:-1}
 PREFLIGHT_UPGRADE=${PREFLIGHT_UPGRADE:-2}
 PREFLIGHT_TLS=${PREFLIGHT_TLS:-1}
@@ -67,15 +71,15 @@ module_apply() {
     fi
 
     if [ "$PREFLIGHT_UPDATE_INDEX" = "1" ]; then
-        apk_safe_run update || true
+        apk_safe_run update || module_mark_partial
     fi
 
     if [ "$PREFLIGHT_UPGRADE" = "1" ]; then
-        apk_safe_run upgrade || true
+        apk_safe_run upgrade || module_mark_partial
     fi
 
     if [ "$PREFLIGHT_TLS" = "1" ]; then
-        apk_safe_run add ca-certificates || true
+        apk_safe_run add ca-certificates || module_mark_partial
         if command -v update-ca-certificates >/dev/null 2>&1; then
             update-ca-certificates || true
         fi
@@ -90,7 +94,7 @@ module_validate() {
 }
 
 module_save_state() {
-    state_set "$STATE_FEATURES_FILE" "preflight.status" "complete"
+    state_set "$STATE_FEATURES_FILE" "preflight.status" "$(module_state_status)"
     state_set "$STATE_FEATURES_FILE" "preflight.alpine_detected" "$PREFLIGHT_IS_ALPINE"
     state_set "$STATE_PACKAGES_FILE" "preflight.update_index" "$PREFLIGHT_UPDATE_INDEX"
     state_set "$STATE_PACKAGES_FILE" "preflight.upgrade" "$PREFLIGHT_UPGRADE"

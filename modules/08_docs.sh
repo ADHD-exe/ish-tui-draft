@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=docs
+MODULE_STD_TITLE="Docs"
+. "$MODULE_DIR/_module_interface.sh"
+
 DOCS_INSTALL_MANDOC=${DOCS_INSTALL_MANDOC:-1}
 DOCS_INSTALL_MAN_PAGES=${DOCS_INSTALL_MAN_PAGES:-1}
 DOCS_APROPOS_DB=${DOCS_APROPOS_DB:-2}
@@ -41,10 +45,10 @@ module_confirm() {
 
 module_apply() {
     if [ "$DOCS_INSTALL_MANDOC" = "1" ]; then
-        apk_add_if_missing mandoc || true
+        apk_add_if_missing_or_partial mandoc || true
     fi
     if [ "$DOCS_INSTALL_MAN_PAGES" = "1" ]; then
-        apk_add_if_missing man-pages || true
+        apk_add_if_missing_or_partial man-pages || true
     fi
     if [ "$DOCS_APROPOS_DB" = "1" ]; then
         if command -v makewhatis >/dev/null 2>&1; then
@@ -67,7 +71,7 @@ module_save_state() {
     state_set "$STATE_PACKAGES_FILE" "docs.mandoc" "$DOCS_INSTALL_MANDOC"
     state_set "$STATE_PACKAGES_FILE" "docs.man_pages" "$DOCS_INSTALL_MAN_PAGES"
     state_set "$STATE_PACKAGES_FILE" "docs.apropos_db" "$DOCS_APROPOS_DB"
-    state_set "$STATE_PACKAGES_FILE" "docs.status" "complete"
+    state_set "$STATE_PACKAGES_FILE" "docs.status" "$(module_state_status)"
     return 0
 }
 

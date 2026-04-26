@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=git
+MODULE_STD_TITLE="Git"
+. "$MODULE_DIR/_module_interface.sh"
+
 GIT_INSTALL=${GIT_INSTALL:-1}
 GIT_SCOPE=${GIT_SCOPE:-2}
 GIT_IDENTITY=${GIT_IDENTITY:-1}
@@ -79,7 +83,7 @@ detect_public_key_for_home() {
 }
 
 module_apply() {
-    [ "$GIT_INSTALL" = "1" ] && apk_add_if_missing git || true
+    [ "$GIT_INSTALL" = "1" ] && apk_add_if_missing_or_partial git || true
 
     printf '%s\n' "$TARGET_USERS" | while IFS=: read -r _role target_user home_path; do
         [ -n "$target_user" ] || continue
@@ -125,7 +129,7 @@ module_save_state() {
     state_set "$STATE_FEATURES_FILE" "git.auth_mode" "$GIT_AUTH_MODE"
     state_set "$STATE_FEATURES_FILE" "git.defaults" "$GIT_DEFAULTS"
     state_set "$STATE_FEATURES_FILE" "git.helpers" "$GIT_HELPERS"
-    state_set "$STATE_FEATURES_FILE" "git.status" "complete"
+    state_set "$STATE_FEATURES_FILE" "git.status" "$(module_state_status)"
     return 0
 }
 

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=w3m
+MODULE_STD_TITLE="w3m"
+. "$MODULE_DIR/_module_interface.sh"
+
 W3M_MODE=${W3M_MODE:-2}
 W3M_INSTALL_MODE=${W3M_INSTALL_MODE:-1}
 W3M_SCOPE=${W3M_SCOPE:-2}
@@ -80,10 +84,10 @@ exec w3m \"\$url\"
 module_apply() {
     case "$W3M_INSTALL_MODE" in
         1)
-            apk_add_if_missing w3m ca-certificates || true
+            apk_add_if_missing_or_partial w3m ca-certificates || true
             command -v update-ca-certificates >/dev/null 2>&1 && update-ca-certificates >/dev/null 2>&1 || true
             ;;
-        2) apk_add_if_missing w3m || true ;;
+        2) apk_add_if_missing_or_partial w3m || true ;;
         3) ;;
     esac
 
@@ -117,7 +121,7 @@ module_save_state() {
     state_set "$STATE_FEATURES_FILE" "w3m.homepage" "$W3M_HOMEPAGE"
     state_set "$STATE_FEATURES_FILE" "w3m.search_url" "$W3M_SEARCH_URL"
     state_set "$STATE_FEATURES_FILE" "w3m.browser_default" "$W3M_BROWSER_DEFAULT"
-    state_set "$STATE_FEATURES_FILE" "w3m.status" "complete"
+    state_set "$STATE_FEATURES_FILE" "w3m.status" "$(module_state_status)"
     return 0
 }
 

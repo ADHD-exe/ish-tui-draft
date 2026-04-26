@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=openrc
+MODULE_STD_TITLE="OpenRC"
+. "$MODULE_DIR/_module_interface.sh"
+
 OPENRC_PROFILE=${OPENRC_PROFILE:-1}
 OPENRC_SSHD=${OPENRC_SSHD:-2}
 
@@ -52,19 +56,19 @@ rc_update_safe() {
 module_apply() {
     case "$OPENRC_PROFILE" in
         1)
-            apk_add_if_missing openrc busybox-initscripts || true
+            apk_add_if_missing_or_partial openrc busybox-initscripts || true
             rc_update_safe hostname boot
             rc_update_safe localmount boot
             ;;
         2)
-            apk_add_if_missing openrc busybox-initscripts busybox-syslog cronie || true
+            apk_add_if_missing_or_partial openrc busybox-initscripts busybox-syslog cronie || true
             rc_update_safe hostname boot
             rc_update_safe localmount boot
             rc_update_safe syslog boot
             rc_update_safe crond default
             ;;
         3)
-            apk_add_if_missing openrc busybox-initscripts busybox-syslog cronie || true
+            apk_add_if_missing_or_partial openrc busybox-initscripts busybox-syslog cronie || true
             rc_update_safe hostname boot
             rc_update_safe localmount boot
             rc_update_safe syslog boot
@@ -86,7 +90,7 @@ module_validate() {
 module_save_state() {
     state_set "$STATE_SERVICES_FILE" "openrc.profile" "$OPENRC_PROFILE"
     state_set "$STATE_SERVICES_FILE" "openrc.sshd_auto" "$OPENRC_SSHD"
-    state_set "$STATE_SERVICES_FILE" "openrc.status" "complete"
+    state_set "$STATE_SERVICES_FILE" "openrc.status" "$(module_state_status)"
     return 0
 }
 

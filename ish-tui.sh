@@ -24,6 +24,8 @@ init_runtime() {
 }
 
 quick_setup() {
+    previous_mode=$MODULE_EXECUTION_MODE
+    MODULE_EXECUTION_MODE=quick
     run_modules \
         "00_preflight" \
         "01_system_identity" \
@@ -42,10 +44,16 @@ quick_setup() {
         "14_shell_rendering" \
         "15_openrc" \
         "16_validation"
+    MODULE_EXECUTION_MODE=$previous_mode
 }
 
 guided_setup() {
-    quick_setup
+    previous_mode=$MODULE_EXECUTION_MODE
+    MODULE_EXECUTION_MODE=guided
+    for module_id in $MODULE_ORDER; do
+        run_module_interactive "$module_id"
+    done
+    MODULE_EXECUTION_MODE=$previous_mode
 }
 
 manual_module_selection() {
@@ -66,7 +74,11 @@ manual_module_selection() {
 }
 
 repair_validate_setup() {
-    run_modules "00_preflight" "16_validation"
+    previous_mode=$MODULE_EXECUTION_MODE
+    MODULE_EXECUTION_MODE=guided
+    run_module_interactive "00_preflight"
+    run_module_interactive "16_validation"
+    MODULE_EXECUTION_MODE=$previous_mode
 }
 
 export_setup_report() {

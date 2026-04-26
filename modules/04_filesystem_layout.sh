@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=filesystem
+MODULE_STD_TITLE="Filesystem Layout"
+. "$MODULE_DIR/_module_interface.sh"
+
 FS_LAYOUT_MODE=${FS_LAYOUT_MODE:-1}
 FS_SHARE_SENSITIVE=${FS_SHARE_SENSITIVE:-1}
 FS_CREATE_DIRS=${FS_CREATE_DIRS:-1}

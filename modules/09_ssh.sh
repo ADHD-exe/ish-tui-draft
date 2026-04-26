@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=ssh
+MODULE_STD_TITLE="SSH"
+. "$MODULE_DIR/_module_interface.sh"
+
 SSH_ENTRY_MODE=${SSH_ENTRY_MODE:-2}
 SSH_USE_CASE=${SSH_USE_CASE:-1}
 SSH_SCOPE=${SSH_SCOPE:-1}
@@ -146,9 +150,9 @@ Subsystem sftp /usr/lib/ssh/sftp-server
 
 module_apply() {
     case "$SSH_USE_CASE" in
-        1|4) apk_add_if_missing openssh-client || true ;;
-        2) apk_add_if_missing openssh-server || true ;;
-        3) apk_add_if_missing openssh-client openssh-server || true ;;
+        1|4) apk_add_if_missing_or_partial openssh-client || true ;;
+        2) apk_add_if_missing_or_partial openssh-server || true ;;
+        3) apk_add_if_missing_or_partial openssh-client openssh-server || true ;;
     esac
 
     printf '%s\n' "$TARGET_USERS" | while IFS=: read -r _role target_user home_path; do
@@ -194,7 +198,7 @@ module_save_state() {
     state_set "$STATE_FEATURES_FILE" "ssh.root_login" "$SSH_ROOT_LOGIN"
     state_set "$STATE_FEATURES_FILE" "ssh.auth_mode" "$SSH_AUTH_MODE"
     state_set "$STATE_FEATURES_FILE" "ssh.startup" "$SSH_STARTUP"
-    state_set "$STATE_FEATURES_FILE" "ssh.status" "complete"
+    state_set "$STATE_FEATURES_FILE" "ssh.status" "$(module_state_status)"
     return 0
 }
 

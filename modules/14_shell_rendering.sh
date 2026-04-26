@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=render
+MODULE_STD_TITLE="Shell Rendering"
+. "$MODULE_DIR/_module_interface.sh"
+
 RENDER_SCOPE=${RENDER_SCOPE:-4}
 RENDER_MODE=${RENDER_MODE:-1}
 RENDER_BASH=${RENDER_BASH:-1}

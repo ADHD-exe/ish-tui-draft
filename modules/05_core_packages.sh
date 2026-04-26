@@ -1,5 +1,9 @@
 #!/bin/sh
 
+MODULE_STD_ID=core
+MODULE_STD_TITLE="Core Packages"
+. "$MODULE_DIR/_module_interface.sh"
+
 CORE_BASELINE_MODE=${CORE_BASELINE_MODE:-1}
 CORE_OPTIONAL_MODE=${CORE_OPTIONAL_MODE:-1}
 CORE_NETWORK_CHECK=${CORE_NETWORK_CHECK:-1}
@@ -67,12 +71,12 @@ check_network_target() {
 module_apply() {
     if [ "$CORE_BASELINE_MODE" = "1" ]; then
         # shellcheck disable=SC2086
-        apk_add_if_missing $CORE_RECOMMENDED_PACKAGES || true
+        apk_add_if_missing_or_partial $CORE_RECOMMENDED_PACKAGES || true
     fi
 
     if [ "$CORE_OPTIONAL_MODE" = "1" ]; then
         # shellcheck disable=SC2086
-        apk_add_if_missing $CORE_OPTIONAL_PACKAGES || true
+        apk_add_if_missing_or_partial $CORE_OPTIONAL_PACKAGES || true
     fi
 
     if [ "$CORE_NETWORK_CHECK" = "1" ]; then
@@ -85,7 +89,10 @@ module_apply() {
 module_validate() {
     if [ "$CORE_BASELINE_MODE" = "1" ]; then
         for package_name in $CORE_RECOMMENDED_PACKAGES; do
-            apk_package_installed "$package_name" || log_warn "Package not installed: $package_name"
+            apk_package_installed "$package_name" || {
+                log_warn "Package not installed: $package_name"
+                module_mark_partial
+            }
         done
     fi
     return 0
@@ -97,7 +104,7 @@ module_save_state() {
     state_set "$STATE_PACKAGES_FILE" "core.network_check" "$CORE_NETWORK_CHECK"
     state_set "$STATE_PACKAGES_FILE" "core.recommended_packages" "$CORE_RECOMMENDED_PACKAGES"
     state_set "$STATE_PACKAGES_FILE" "core.optional_packages" "$CORE_OPTIONAL_PACKAGES"
-    state_set "$STATE_PACKAGES_FILE" "core.status" "complete"
+    state_set "$STATE_PACKAGES_FILE" "core.status" "$(module_state_status)"
     return 0
 }
 
