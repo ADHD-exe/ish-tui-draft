@@ -1,23 +1,38 @@
 # ish-tui
 
-Production-oriented POSIX shell TUI installer for iSH on Alpine Linux x86.
+`ish-tui` is a POSIX shell installer and configuration TUI for iSH running Alpine Linux x86.
 
-This repository is being built in milestones. Milestone 4 provides:
+The project is structured around a locked module pipeline that starts with first-run-safe preflight checks and continues through user setup, privileges, filesystem layout, package installation, shell installation, registries, docs, SSH, Git, mounts, clipboard support, `w3m`, shell rendering, OpenRC, and final validation.
 
-- a `/bin/sh` launcher
-- a BusyBox-friendly home menu
-- a module runner
-- state, registry, logging, backup, and validation helpers
-- a working preflight module
-- working modules for system identity, users, privileges, filesystem layout, and core packages
-- working modules for shell installation, global registry setup, docs, SSH, and Git
-- working modules for mounts, clipboard, w3m, shell rendering, OpenRC, and final validation
-- smoke and syntax tests
+The main design constraints are:
+
+- first launch must work with `/bin/sh` on a fresh iSH install
+- first-run menu flow must stay BusyBox-compatible
+- runtime package operations use `apk`
+- module writes are intended to be idempotent and backed up before overwriting files
+- shell startup files are written only by the shell rendering phase
+- state, logs, and registries live under `/var/lib/iosish`
+
+The repository currently includes:
+
+- the launcher at `./ish-tui.sh`
+- shared libraries in `./lib`
+- ordered installer modules in `./modules`
+- architecture and testing notes in `./docs`
+- syntax, smoke, idempotency, and order checks in `./tests`
 
 ## Run
 
+On iSH, from the repo root:
+
 ```sh
 sh ./ish-tui.sh
+```
+
+If you want a one-liner after cloning:
+
+```sh
+cd ish-tui && sh ./ish-tui.sh
 ```
 
 ## Test
