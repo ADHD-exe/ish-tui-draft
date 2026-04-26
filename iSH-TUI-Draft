@@ -1,0 +1,3342 @@
+Launch TUI
+What would you like to do?
+1) Run quick-setup (automatic)
+2) Run quick-setup with prompts (recommended)
+3) Manually proceed (Advanced)
+
+
+Catagories
+- 1) users & environment
+- 2) Shell
+- 3)Aliases
+- 4) SSH/SSHD
+- 5) git
+- 6) iOS Storage
+- 7) OpenRC
+- 8) mandoc
+- 9) Webrowser
+- 10)Aliases
+-
+Subcatagories
+- 1) users, environment, hostname. sudo/doas
+# Initial Setup Prompts —
+## Phase 0 — Entry
+
+```text
+Initial System Setup
+
+1) Skip and continue
+2) Guided setup (recommended)
+3) Advanced/manual setup
+```
+
+---
+
+## Phase 1 — Account Plan
+
+```text
+Choose account setup:
+
+1) Root only
+2) Root + primary user (recommended)
+3) Root + guest user
+4) Root + primary user + guest user
+5) Use existing users
+```
+
+---
+
+## Phase 2 — Primary User
+
+```text
+Primary user setup:
+
+1) Create new primary user
+2) Use existing user
+3) Skip primary user
+```
+
+```text
+Enter primary username:
+[default: rabbit]
+```
+
+```text
+Primary user home directory:
+
+1) Default: /home/<username>
+2) Custom path
+```
+
+```text
+Primary user password:
+
+1) Enter password
+2) Generate random password and show once
+3) Skip password
+```
+
+---
+
+## Phase 3 — Guest User
+
+```text
+Guest user setup:
+
+1) Create guest user
+2) Use existing guest user
+3) Skip guest user
+```
+
+```text
+Enter guest username:
+[default: guest]
+```
+
+```text
+Guest account access level:
+
+1) Restricted standard user (recommended)
+2) Standard user
+3) Add to wheel/admin group (not recommended)
+```
+
+```text
+Guest persistence:
+
+1) Persistent guest home directory
+2) Reset guest home on launch
+3) Reset guest home manually only
+```
+
+---
+
+## Phase 4 — Root Account
+
+```text
+Root account setup:
+
+1) Keep root enabled (recommended)
+2) Keep root enabled but discourage daily use
+3) Disable direct root login where possible
+```
+
+```text
+Root password:
+
+1) Enter root password
+2) Use same password as primary user
+3) Generate random password and show once
+4) Skip password
+```
+
+---
+
+# Phase 5 — Admin Privilege Setup: `sudo` / `doas`
+
+```text
+Install privilege escalation tool?
+
+1) doas only (recommended for iSH)
+2) sudo only
+3) both doas and sudo
+4) skip and continue
+```
+
+Recommended default:
+
+```text
+1) doas only
+```
+
+---
+
+## Phase 5A — Admin Group
+
+```text
+Create/use admin group?
+
+1) Use wheel group (recommended)
+2) Use custom admin group
+3) Skip group setup
+```
+
+Recommended default:
+
+```text
+1) wheel
+```
+
+---
+
+## Phase 5B — Add Primary User to Admin Group
+
+Shown only if primary user exists.
+
+```text
+Add primary user '<primary_user>' to wheel/admin group?
+
+1) Yes (recommended)
+2) No
+```
+
+---
+
+## Phase 5C — Guest Admin Access
+
+Shown only if guest user exists.
+
+```text
+Add guest user '<guest_user>' to wheel/admin group?
+
+1) No (recommended)
+2) Yes
+```
+
+---
+
+## Phase 5D — `doas` Policy
+
+Shown if `doas` selected.
+
+```text
+Configure doas policy:
+
+1) Require password, remember briefly with persist (recommended)
+2) Require password every time
+3) Permit without password (not recommended)
+4) Skip doas config
+```
+
+Writes one of:
+
+```sh
+permit persist :wheel
+```
+
+or:
+
+```sh
+permit :wheel
+```
+
+or:
+
+```sh
+permit nopass :wheel
+```
+
+Target file:
+
+```text
+/etc/doas.conf
+```
+
+Safe permissions:
+
+```sh
+chown root:root /etc/doas.conf
+chmod 600 /etc/doas.conf
+```
+
+---
+
+## Phase 5E — `sudo` Policy
+
+Shown if `sudo` selected.
+
+```text
+Configure sudo policy:
+
+1) Require password for wheel group (recommended)
+2) Allow wheel group without password (not recommended)
+3) Skip sudo config
+```
+
+Writes one of:
+
+```text
+%wheel ALL=(ALL) ALL
+```
+
+or:
+
+```text
+%wheel ALL=(ALL) NOPASSWD: ALL
+```
+
+Target file:
+
+```text
+/etc/sudoers.d/wheel
+```
+
+Safe validation:
+
+```sh
+visudo -cf /etc/sudoers.d/wheel
+```
+
+Safe permissions:
+
+```sh
+chown root:root /etc/sudoers.d/wheel
+chmod 440 /etc/sudoers.d/wheel
+```
+
+---
+
+## Phase 5F — Privilege Test
+
+```text
+Test admin escalation after setup?
+
+1) Yes (recommended)
+2) No
+```
+
+Test commands:
+
+```sh
+doas id
+sudo id
+```
+
+---
+
+# Phase 6 — Environment Layout
+
+```text
+Configure account environments:
+
+1) Fully isolated environments (recommended)
+2) Share aliases only
+3) Share aliases + prompt config
+4) Mirror primary user environment to root (not recommended)
+```
+
+Each enabled account gets:
+
+```text
+.profile
+.ashrc
+.config/iosish/
+.local/bin/
+.local/share/
+.cache/
+.ssh/
+```
+
+---
+
+# Phase 7 — Sensitive Config Sharing
+
+```text
+Share sensitive files between accounts?
+
+1) No, keep all SSH keys and secrets separate (recommended)
+2) Share SSH client config only
+3) Share SSH keys too (not recommended)
+```
+
+---
+
+# Phase 8 — Hostname
+
+```text
+System hostname:
+
+1) Keep current hostname
+2) Rename localhost/customize hostname (recommended)
+```
+
+```text
+Enter hostname:
+[default: iosish]
+```
+
+```text
+Make hostname persistent?
+
+1) Yes, write /etc/hostname and update /etc/hosts (recommended)
+2) Session only
+```
+
+```text
+Apply hostname at shell startup for iSH compatibility?
+
+1) Yes (recommended)
+2) No
+```
+
+---
+
+# Phase 9 — Launch Account
+
+```text
+Which account should iSH use when the app launches?
+
+1) Root
+2) Primary user (recommended)
+3) Guest user
+4) Ask every launch
+```
+
+Only show valid existing accounts.
+
+```text
+Auto-switch to selected launch account?
+
+1) Yes (recommended)
+2) No
+```
+
+---
+
+# Phase 10 — Permissions Hardening
+
+```text
+Apply safe account permissions?
+
+1) Yes (recommended)
+2) No
+```
+
+Applies:
+
+```sh
+chmod 700 /root
+chmod 755 /home/<primary_user>
+chmod 755 /home/<guest_user>
+chmod 700 /root/.ssh
+chmod 700 /home/<primary_user>/.ssh
+chmod 700 /home/<guest_user>/.ssh
+```
+
+---
+
+# Phase 11 — Summary
+
+```text
+Initial Setup Summary
+
+Root:
+  Enabled: yes
+  Home: /root
+
+Primary user:
+  Enabled: yes
+  Username: rabbit
+  Home: /home/rabbit
+  Admin group: wheel
+  doas: enabled
+  sudo: disabled
+
+Guest user:
+  Enabled: yes
+  Username: guest
+  Home: /home/guest
+  Admin group: no
+  Persistence: persistent
+
+Hostname:
+  Name: iosish
+  Persistent: yes
+
+Launch account:
+  Default: rabbit
+  Auto-switch: yes
+
+1) Apply setup
+2) Go back and modify
+3) Cancel
+```
+
+---
+
+## Recommended defaults for iOSiSH
+
+```text
+Privilege tool: doas only
+Admin group: wheel
+Primary user in wheel: yes
+Guest user in wheel: no
+doas policy: permit persist :wheel
+sudo policy: password required if installed
+Hostname: iosish
+Launch account: primary user
+Environment layout: isolated
+```
+
+## Package mapping
+
+```sh
+# doas
+apk add doas
+
+# sudo
+apk add sudo
+
+# both
+apk add doas sudo
+```
+
+## Best implementation order
+
+```text
+1) Create root/primary/guest users
+2) Create wheel group if missing
+3) Add primary user to wheel if selected
+4) Install doas/sudo
+5) Write doas/sudo config
+6) Validate sudo config
+7) Configure environments
+8) Configure hostname
+9) Configure launch account
+10) Apply permissions
+```
+
+This keeps admin access explicit, avoids accidentally giving guest escalation, and works cleanly with root + primary user separation.
+
+- 2) Shell
+# 🧠 Shell Installer — Prompt Architecture
+
+## Phase 0 — Entry
+
+```text
+Shell Configuration
+
+1) Skip and continue
+2) Configure shells (recommended)
+```
+
+---
+
+# Phase 1 — Shell Selection
+
+```text
+Select a shell to install/configure:
+
+1) BASH
+2) ZSH
+3) FISH
+4) Return to main menu
+```
+
+> Internally:
+
+```sh
+SHELL_CHOICE="bash|zsh|fish"
+```
+
+---
+
+# Phase 2 — Install Check
+
+```text
+Install <shell>?
+
+1) Yes
+2) No (configure only)
+```
+
+> Logic:
+
+* If not installed → force install
+* If installed → allow config-only
+
+---
+
+# Phase 3 — Plugin Framework Selection (per shell)
+
+## If BASH
+
+```text
+BASH enhancements:
+
+1) None (minimal)
+2) Oh My Bash
+3) Custom plugins
+```
+
+If (3):
+
+```text
+Select plugins (toggle):
+
+[ ] git
+[ ] fzf (history search)
+[ ] zoxide (smart cd)
+[ ] bash-completion
+[ ] autosuggestions (limited)
+
+Enter numbers separated by space (e.g. 1 3 4), or 0 to continue:
+```
+
+---
+
+## If ZSH
+
+```text
+ZSH framework:
+
+1) None
+2) Oh My Zsh (recommended)
+3) Custom setup
+```
+
+If (2 or 3):
+
+```text
+Select plugins:
+
+[ ] git
+[ ] zsh-autosuggestions
+[ ] zsh-syntax-highlighting
+[ ] zoxide
+[ ] sudo (ESC ESC trick)
+```
+
+---
+
+## If FISH
+
+```text
+FISH setup:
+
+1) Minimal
+2) Fisher plugin manager
+```
+
+If (2):
+
+```text
+Select plugins:
+
+[ ] z (directory jumping)
+[ ] fzf integration
+[ ] done (notifications)
+```
+
+---
+
+# Phase 4 — Prompt Configuration
+
+```text
+Select prompt style:
+
+1) Default shell prompt
+2) Starship (cross-shell, recommended)
+3) Powerlevel10k (ZSH only)
+4) Tide (FISH only)
+```
+
+### Conditional logic
+
+* If shell != zsh → disable powerlevel10k
+* If shell != fish → disable Tide
+
+---
+
+## Prompt customization
+
+```text
+Configure prompt:
+
+1) Minimal (fast)
+2) Informative (git, path, status)
+3) Full (icons, colors, segments)
+```
+
+---
+
+# Phase 5 — User Targeting (critical)
+
+```text
+Apply this shell configuration to:
+
+1) Primary user only
+2) Root only
+3) Both root and primary user
+```
+
+### Internal mapping
+
+```sh
+TARGET_USERS=("root" "$PRIMARY_USER")
+```
+
+---
+
+# Phase 6 — Default Shell Assignment
+
+```text
+Set <shell> as default shell?
+
+1) Yes
+2) No
+```
+
+If yes:
+
+```text
+Apply default shell to:
+
+1) Primary user
+2) Root
+3) Both
+```
+
+> Implementation:
+
+```sh
+chsh -s /bin/<shell> user
+```
+
+⚠ iSH note:
+
+* `chsh` may not persist → fallback to editing `/etc/passwd`
+
+---
+
+# Phase 7 — Config File Handling
+
+```text
+Configuration mode:
+
+1) Merge with existing config (safe)
+2) Overwrite config (clean install)
+3) Backup then overwrite (recommended)
+```
+
+---
+
+# Phase 8 — Summary (per shell pass)
+
+```text
+Shell Setup Summary:
+
+Shell: ZSH
+Framework: Oh My Zsh
+Plugins: git, autosuggestions, syntax-highlighting
+Prompt: Starship (informative)
+Targets: root + rabbit
+Default shell: yes
+
+1) Apply
+2) Go back and modify
+```
+
+---
+
+# Phase 9 — Loop Control (multi-shell support)
+
+```text
+Would you like to configure another shell?
+
+1) Yes
+2) No (finish shell setup)
+```
+
+### Control flow
+
+```sh
+while true; do
+  run_shell_setup_cycle
+
+  if [ "$ADD_ANOTHER" = "no" ]; then
+    break
+  fi
+done
+```
+
+---
+
+# 🧱 Implementation Architecture (important)
+
+## Core functions
+
+```sh
+install_shell() {}
+configure_shell_plugins() {}
+configure_prompt() {}
+apply_to_user() {}
+set_default_shell() {}
+```
+
+---
+
+## State tracking (recommended)
+
+Store selections:
+
+```sh
+/var/lib/iosish/shell-state.json
+```
+
+Example:
+
+```json
+{
+  "root": {
+    "shell": "bash",
+    "prompt": "starship"
+  },
+  "rabbit": {
+    "shell": "zsh",
+    "plugins": ["git", "zoxide"]
+  }
+}
+```
+
+---
+
+# ⚠ iSH-Specific Constraints
+
+## 1. Shell binaries
+
+Ensure installed paths exist:
+
+```sh
+/bin/bash
+/bin/zsh
+/usr/bin/fish
+```
+
+---
+
+## 2. chsh fallback
+
+If `chsh` fails:
+
+```sh
+sed -i "s|^user:.*|user:x:1000:1000::/home/user:/bin/zsh|" /etc/passwd
+```
+
+---
+
+## 3. Permissions
+
+Always fix:
+
+```sh
+chown -R user:user ~/.config ~/.local ~/.cache
+```
+
+---
+
+# 💡 Recommended Defaults
+
+| Setting       | Value                                     |
+| ------------- | ----------------------------------------- |
+| Shell         | ZSH                                       |
+| Framework     | Oh My Zsh                                 |
+| Plugins       | git, autosuggestions, syntax-highlighting |
+| Prompt        | Starship                                  |
+| Target        | Primary user                              |
+| Default shell | Yes                                       |
+
+---
+
+# 🔁 Example User Flow
+
+```text
+→ Select ZSH
+→ Install: Yes
+→ Framework: Oh My Zsh
+→ Plugins: git + autosuggestions
+→ Prompt: Starship (informative)
+→ Target: Primary user
+→ Default: Yes
+→ Apply
+
+→ Configure another shell? Yes
+
+→ Select BASH
+→ Minimal setup
+→ Target: root
+→ Default: No
+→ Apply
+
+→ Configure another shell? No
+```
+
+---
+
+# 🔧 High-Value Enhancements (optional)
+
+Add:
+
+```text
+Enable:
+
+[ ] Shared prompt config across shells
+[ ] Global aliases
+[ ] Shell benchmarking (startup time)
+[ ] Fastfetch/neofetch integration
+```
+
+---
+
+# Summary
+
+You now have:
+
+* **Loop-based shell installer**
+* **Per-shell plugin system**
+* **Per-user targeting**
+* **Prompt framework selection**
+* **Safe config handling**
+* **Multi-shell support**
+
+---
+
+## Next step (recommended)
+
+I can convert this into:
+
+* a **fully wired `shells.sh` module**
+* integrated with your iOSiSH state system
+* with real install + config code per shell
+
+Just say: *build module* and I’ll generate it.
+
+- 3) SSH/SSHD
+Below is a **production-grade prompt architecture** tailored for iSH + your iOSiSH installer.
+
+---
+
+# 🔐 SSH Setup Prompt System (First-Time Configuration)
+
+## Phase 0 — Entry Decision
+
+```text
+Configure SSH?
+
+1) Skip and continue
+2) Basic client setup (recommended)
+3) Full setup (client + server)
+4) Advanced/manual configuration
+```
+
+**Default:** 2
+
+---
+
+# Phase 1 — Use Case Detection (critical)
+
+This determines everything downstream.
+
+```text
+What will you use SSH for?
+
+1) Connecting FROM this device to other systems (client only)
+2) Connecting TO this device from another device (server)
+3) Both client and server
+4) Not sure (auto-recommended setup)
+```
+
+### Internal mapping
+
+| Choice | Install          |
+| ------ | ---------------- |
+| Client | `openssh-client` |
+| Server | `openssh-server` |
+| Both   | both             |
+
+---
+
+# Phase 2 — Target User Scope
+
+Matches your multi-user system design.
+
+```text
+Configure SSH for which users?
+
+1) Primary user only (recommended)
+2) Root only
+3) Both root and primary user
+```
+
+**Default:** 1
+
+---
+
+# Phase 3 — Key Strategy (important design decision)
+
+```text
+SSH authentication method:
+
+1) Generate new SSH key (recommended)
+2) Import existing key
+3) Use password authentication only (not recommended)
+```
+
+---
+
+## If (1) Generate key
+
+```text
+Select key type:
+
+1) ed25519 (recommended)
+2) rsa (compatibility)
+```
+
+Then:
+
+```text
+Add passphrase to key?
+
+1) Yes (more secure)
+2) No (faster, less secure)
+```
+
+Then:
+
+```text
+Key comment (optional):
+[ default: <user>@iosish ]
+```
+
+---
+
+## If (2) Import key
+
+```text
+How will you import your key?
+
+1) Paste private key
+2) Download from URL
+3) Copy from local path
+```
+
+⚠️ For iSH, “paste” is most realistic.
+
+---
+
+# Phase 4 — SSH Config Defaults
+
+```text
+Apply SSH client optimizations?
+
+1) Yes (recommended)
+2) No
+```
+
+If yes, write:
+
+```ssh
+Host *
+  ServerAliveInterval 60
+  ServerAliveCountMax 3
+  TCPKeepAlive yes
+  Compression yes
+```
+
+---
+
+# Phase 5 — Convenience Aliases (high-value UX)
+
+```text
+Add SSH shortcuts?
+
+1) Yes (recommended)
+2) No
+```
+
+If yes:
+
+```text
+Create quick connect alias?
+
+Example:
+ssh-home → ssh user@192.168.1.10
+
+1) Yes
+2) No
+```
+
+---
+
+# Phase 6 — Server Configuration (if enabled)
+
+Only shown if server selected.
+
+---
+
+## 6.1 Enable SSH server?
+
+```text
+Enable SSH server on this device?
+
+1) Yes
+2) No
+```
+
+---
+
+## 6.2 Port selection
+
+```text
+SSH port:
+
+1) Default (22)
+2) Custom port
+```
+
+---
+
+## 6.3 Root login policy
+
+```text
+Allow root login?
+
+1) No (recommended)
+2) Yes
+3) Yes, but key-only
+```
+
+---
+
+## 6.4 Authentication policy
+
+```text
+Authentication method:
+
+1) Key-based only (recommended)
+2) Password only
+3) Both
+```
+
+---
+
+## 6.5 iSH-specific warning (important)
+
+```text
+⚠ iSH Networking Limitation:
+
+SSH server may not be accessible from external networks.
+
+Continue anyway?
+
+1) Yes
+2) No
+```
+
+---
+
+# Phase 7 — Security Hardening
+
+```text
+Apply SSH security hardening?
+
+1) Yes (recommended)
+2) No
+```
+
+If yes:
+
+* Disable root login (unless overridden)
+* Disable empty passwords
+* Limit auth attempts
+* Disable X11 forwarding
+
+---
+
+# Phase 8 — Startup Behavior (iSH-specific)
+
+```text
+Start SSH server automatically?
+
+1) Yes (OpenRC)
+2) No (manual start only)
+```
+
+⚠ In iSH, OpenRC is unreliable → default should be **manual start**
+
+---
+
+# Phase 9 — Final Summary (important UX)
+
+```text
+SSH Setup Summary:
+
+User: rabbit
+Mode: Client + Server
+Key: ed25519 (no passphrase)
+Port: 22
+Auth: Key-only
+Root Login: Disabled
+
+Proceed?
+
+1) Yes
+2) Go back and modify
+```
+
+---
+
+# Phase 10 — Post-Setup Output (critical UX)
+
+After install:
+
+```text
+SSH setup complete.
+
+Connect using:
+
+ssh rabbit@<device-ip>
+
+Start server manually:
+rc-service sshd start
+
+Your public key:
+~/.ssh/id_ed25519.pub
+```
+
+---
+
+# Advanced (Optional but High Value)
+
+## Feature toggles you should consider
+
+```text
+Enable:
+
+[ ] SSH agent
+[ ] Known hosts management
+[ ] Auto key permissions fix
+[ ] Git SSH integration
+```
+
+---
+
+# Design Principles (important for your installer)
+
+## 1. Never assume SSH usage
+
+Always ask use-case first.
+
+---
+
+## 2. Never auto-share SSH keys between users
+
+Explicit prompt only:
+
+```text
+Share SSH keys between root and user?
+
+1) No (recommended)
+2) Yes
+```
+
+---
+
+## 3. Default to secure but usable
+
+* ed25519
+* key-based auth
+* no root login
+
+---
+
+## 4. iSH-aware behavior
+
+* Warn about networking limits
+* Avoid relying on persistent daemons
+* Prefer manual start
+
+---
+
+# Recommended Minimal Flow (your default path)
+
+If user selects “quick setup”:
+
+1. Install `openssh-client`
+2. Generate ed25519 key (no passphrase)
+3. Create basic config
+4. Done
+
+---
+
+# If you want next step
+
+I can convert this into:
+
+* a **state-driven prompt system (matching your iOSiSH architecture)**
+* fully structured `case/esac` flow
+* or a **drop-in SSH module script**
+
+Say the direction.
+
+- 4) git
+- Below is a **clean, state-driven prompt flow** for:
+
+* installing Git
+* configuring identity
+* setting up SSH
+* connecting to GitHub
+
+It’s designed to integrate directly into your iOSiSH installer style (numbered, modular, repeatable, idempotent).
+
+---
+
+# 🧭 Phase 0 — Entry
+
+```text
+Git Setup
+
+1) Skip and continue
+2) Install and configure Git (recommended)
+3) Advanced/manual setup
+```
+
+---
+
+# 📦 Phase 1 — Install Git
+
+```text
+Install Git?
+
+1) Yes (recommended)
+2) No (configure only)
+```
+
+Internal:
+
+```sh
+apk add git
+```
+
+---
+
+# 👤 Phase 2 — User Scope
+
+```text
+Apply Git configuration to:
+
+1) Primary user only (recommended)
+2) Root only
+3) Both root and primary user
+```
+
+---
+
+# 🧾 Phase 3 — Git Identity
+
+```text
+Configure Git identity:
+
+1) Yes (recommended)
+2) Skip
+```
+
+If yes:
+
+```text
+Enter Git username:
+[example: ADHD-exe]
+```
+
+```text
+Enter Git email:
+[example: user@example.com]
+```
+
+---
+
+## Scope of config
+
+```text
+Apply identity config as:
+
+1) Global (~/.gitconfig) (recommended)
+2) System-wide (/etc/gitconfig)
+3) Local only (per-repo later)
+```
+
+Recommended: `1`
+
+---
+
+## Optional defaults
+
+```text
+Set default Git settings?
+
+1) Yes (recommended)
+2) No
+```
+
+If yes:
+
+```sh
+git config --global init.defaultBranch main
+git config --global pull.rebase false
+git config --global color.ui auto
+git config --global core.editor nano
+```
+
+---
+
+# 🔐 Phase 4 — Authentication Method
+
+```text
+How would you like to authenticate with GitHub?
+
+1) SSH (recommended)
+2) HTTPS (token-based)
+3) Skip for now
+```
+
+Recommended: `1`
+
+---
+
+# 🔑 Phase 5 — SSH Setup
+
+## 5.1 Key strategy
+
+```text
+SSH key setup:
+
+1) Generate new SSH key (recommended)
+2) Use existing key
+3) Skip SSH setup
+```
+
+---
+
+## If generate
+
+```text
+Key type:
+
+1) ed25519 (recommended)
+2) rsa (compatibility)
+```
+
+```text
+Add passphrase?
+
+1) Yes (more secure)
+2) No (faster)
+```
+
+```text
+Key comment:
+[default: <user>@iosish]
+```
+
+Internal:
+
+```sh
+ssh-keygen -t ed25519 -C "<comment>"
+```
+
+---
+
+## If existing key
+
+```text
+Use existing SSH key from:
+
+1) Default location (~/.ssh/id_ed25519)
+2) Specify path
+```
+
+---
+
+# 📁 Phase 6 — SSH Config
+
+```text
+Create SSH config file?
+
+1) Yes (recommended)
+2) No
+```
+
+If yes:
+
+```text
+Add GitHub host config?
+
+1) Yes (recommended)
+2) No
+```
+
+Writes:
+
+```ssh
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+```
+
+---
+
+# 📋 Phase 7 — Add Key to GitHub
+
+```text
+Add SSH key to GitHub:
+
+1) Show public key for manual copy (recommended)
+2) Attempt auto-copy to clipboard
+3) Skip
+```
+
+If (1):
+
+```text
+Your public key:
+
+~/.ssh/id_ed25519.pub
+
+Copy the contents and add it to GitHub:
+Settings → SSH and GPG keys → New SSH key
+```
+
+---
+
+# 🌐 Phase 8 — GitHub Test Connection
+
+```text
+Test GitHub SSH connection?
+
+1) Yes (recommended)
+2) No
+```
+
+Runs:
+
+```sh
+ssh -T git@github.com
+```
+
+Expected:
+
+```text
+Hi <username>! You've successfully authenticated...
+```
+
+---
+
+# ⚙️ Phase 9 — GitHub Defaults
+
+```text
+Apply GitHub-specific defaults?
+
+1) Yes (recommended)
+2) No
+```
+
+If yes:
+
+```sh
+git config --global url."git@github.com:".insteadOf "https://github.com/"
+```
+
+---
+
+# 🧪 Phase 10 — Test Repository Setup
+
+```text
+Test Git setup?
+
+1) Initialize test repo (recommended)
+2) Skip
+```
+
+If yes:
+
+```sh
+mkdir ~/git-test
+cd ~/git-test
+git init
+touch README.md
+git add .
+git commit -m "Initial commit"
+```
+
+---
+
+# 🔁 Phase 11 — Optional Enhancements
+
+```text
+Enable Git enhancements:
+
+[ ] git aliases
+[ ] credential caching (HTTPS)
+[ ] SSH agent setup
+[ ] Git prompt integration
+```
+
+---
+
+## Git aliases (recommended set)
+
+```sh
+git config --global alias.st status
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.cm commit
+git config --global alias.lg "log --oneline --graph --decorate"
+```
+
+---
+
+# 📋 Phase 12 — Summary
+
+```text
+Git Setup Summary
+
+Git: installed
+User: rabbit
+Identity: ADHD-exe <user@example.com>
+Auth: SSH
+Key: ed25519
+GitHub: configured
+SSH test: passed
+
+1) Apply
+2) Modify
+3) Cancel
+```
+
+---
+
+# 📦 Phase 13 — Post-Setup Output
+
+```text
+Git setup complete.
+
+Clone repos using:
+
+git clone git@github.com:<username>/<repo>.git
+
+Test connection:
+
+ssh -T git@github.com
+
+Your SSH public key:
+
+~/.ssh/id_ed25519.pub
+```
+
+---
+
+# 🧠 Design Notes (important)
+
+## 1. Default path
+
+```text
+Install Git
+→ Set identity
+→ Generate SSH key
+→ Configure GitHub
+→ Test connection
+```
+
+---
+
+## 2. Avoid common failures
+
+* wrong permissions on `~/.ssh`
+* missing `IdentitiesOnly yes`
+* using HTTPS unintentionally
+* not testing connection
+
+---
+
+## 3. iSH-specific considerations
+
+* clipboard copy may not work reliably → always show key
+* SSH agent may not persist → optional only
+* no system keychain → avoid credential helpers
+
+---
+
+# 🔧 Recommended Defaults
+
+| Setting         | Value         |
+| --------------- | ------------- |
+| Git install     | yes           |
+| Scope           | primary user  |
+| Identity        | global        |
+| Auth            | SSH           |
+| Key type        | ed25519       |
+| Passphrase      | no (optional) |
+| SSH config      | yes           |
+| GitHub override | yes           |
+| Test connection | yes           |
+
+---
+
+# Next Step
+
+If you want, I can convert this into:
+
+* a **fully implemented `git.sh` module**
+* with error handling, retries, and validation
+* integrated with your SSH + user system
+
+Just say: **build git module**
+
+- 5) Mount iOS Storage
+- ## iOS Storage Mount Setup — Prompt Flow (iSH)
+
+*(No persistence; OpenRC handled separately later)*
+
+---
+
+# Phase 0 — Entry
+
+```text
+iOS Storage Mount
+
+1) Skip and continue
+2) Setup iOS storage mount (recommended)
+3) Advanced/manual setup
+```
+
+---
+
+# Phase 1 — Use Case
+
+```text
+What do you want to mount?
+
+1) App sandbox (iSH Documents) (recommended)
+2) External folder from Files app
+3) Both
+```
+
+---
+
+# Phase 2 — Mount Points
+
+```text
+Choose mount location(s):
+
+1) Default (recommended)
+   /mnt/ios
+   /mnt/files
+2) Custom path(s)
+```
+
+If custom:
+
+```text
+Enter mount path for iOS storage:
+[example: /mnt/ios]
+```
+
+```text
+Enter mount path for Files folder:
+[example: /mnt/files]
+```
+
+---
+
+# Phase 3 — Permissions & Ownership
+
+```text
+Set ownership for mount points:
+
+1) Primary user (recommended)
+2) Root
+3) Shared (primary user + root)
+```
+
+```text
+Set permissions for mount points:
+
+1) Standard (755) (recommended)
+2) Relaxed (775)
+3) Strict (750)
+```
+
+> Applies to mount directories only. Underlying iOS files may not fully respect Unix permissions.
+
+---
+
+# Phase 4 — External Folder Selection (Files App)
+
+Shown if option 2 or 3 selected earlier.
+
+```text
+Link a folder from the Files app:
+
+1) Open Files picker and select folder (recommended)
+2) Skip linking for now
+```
+
+---
+
+# Phase 5 — Mount Method
+
+```text
+Mount method:
+
+1) Standard iSH mount helper (recommended)
+2) Read-only mount
+3) Manual commands only
+```
+
+---
+
+# Phase 6 — Directory Preparation
+
+```text
+Prepare mount directories:
+
+1) Create directories if missing (recommended)
+2) Use existing directories
+3) Clean and recreate directories
+```
+
+---
+
+# Phase 7 — Safety Options
+
+```text
+Enable safety checks:
+
+[ ] Verify mount after setup
+[ ] Fallback to read-only if mount fails
+[ ] Show warnings if mount unavailable
+```
+
+---
+
+# Phase 8 — Summary
+
+```text
+iOS Storage Mount Summary
+
+iOS mount: /mnt/ios
+Files mount: /mnt/files
+Ownership: primary user
+Permissions: 755
+External folder: linked
+Persistence: disabled (handled later via OpenRC)
+
+1) Apply setup
+2) Go back and modify
+3) Cancel
+```
+
+---
+
+# Phase 9 — Apply (Execution)
+
+## Create directories
+
+```sh
+mkdir -p /mnt/ios /mnt/files
+chown <user>:<user> /mnt/ios /mnt/files
+chmod 755 /mnt/ios /mnt/files
+```
+
+## Mount commands
+
+```sh
+# iSH app storage
+mount -t ios ios /mnt/ios
+
+# External Files folder (after picker selection)
+mount -t ios files /mnt/files
+```
+
+---
+
+# Phase 10 — Verification
+
+```text
+Verify mount now?
+
+1) Yes (recommended)
+2) No
+```
+
+Runs:
+
+```sh
+mount | grep ios
+ls -la /mnt/ios
+ls -la /mnt/files
+```
+
+---
+
+# Phase 11 — Post-Setup Output
+
+```text
+iOS storage mount configured.
+
+Access:
+
+/mnt/ios      → iSH app storage
+/mnt/files    → Files app folder
+
+Manual mount commands:
+
+mount -t ios ios /mnt/ios
+mount -t ios files /mnt/files
+
+Persistence will be configured later in OpenRC setup.
+```
+
+---
+
+# Recommended Defaults (iOSiSH)
+
+* Mount both app storage and Files folder
+* Use `/mnt/ios` and `/mnt/files`
+* Ownership: primary user
+* Permissions: 755
+* Verify after setup enabled
+
+---
+
+# Design Notes
+
+* No persistence logic here by design (delegated to OpenRC phase)
+* Keeps mount setup modular and re-runnable
+* Avoids mixing runtime mount logic with service management
+* Compatible with future OpenRC-based auto-mount service
+
+---
+
+If you want next step: I can build the **OpenRC mount service module** that integrates cleanly with this phase (including retry logic and mount validation).
+
+- 6)Clipboad combatablility
+- ## Clipboard Compatibility — Prompt Flow (iSH)
+
+Goal: provide a **reliable, minimal clipboard bridge** between iSH and iOS with optional enhancements. Keep it **user-scoped**, **idempotent**, and **independent of OpenRC**.
+
+---
+
+# Phase 0 — Entry
+
+```text
+Clipboard Integration
+
+1) Skip and continue
+2) Setup clipboard support (recommended)
+3) Advanced/manual setup
+```
+
+---
+
+# Phase 1 — Use Cases
+
+```text
+What do you want clipboard support for?
+
+1) Copy from terminal → iOS clipboard
+2) Paste from iOS clipboard → terminal
+3) Both copy and paste (recommended)
+```
+
+> Internally track:
+
+```sh
+CLIP_COPY=yes|no
+CLIP_PASTE=yes|no
+```
+
+---
+
+# Phase 2 — Method Selection
+
+```text
+Choose clipboard method:
+
+1) iSH built-in (selection + tap/long-press) (baseline)
+2) Helper commands (pbcopy/pbpaste-style) (recommended)
+3) File bridge (shared file via iOS storage)
+4) Both helper commands + file bridge
+```
+
+**Recommended default:** `2`
+
+---
+
+# Phase 3 — Target Users
+
+```text
+Apply clipboard setup to:
+
+1) Primary user only (recommended)
+2) Root only
+3) Both root and primary user
+```
+
+---
+
+# Phase 4 — Helper Commands (pbcopy/pbpaste)
+
+Shown if method includes helpers.
+
+```text
+Install helper commands?
+
+1) Yes (recommended)
+2) No
+```
+
+```text
+Command names:
+
+1) pbcopy / pbpaste (macOS-style) (recommended)
+2) clipcopy / clippaste
+3) Custom names
+```
+
+---
+
+## Implementation (per target user)
+
+Create:
+
+```text
+~/.local/bin/pbcopy
+~/.local/bin/pbpaste
+```
+
+Example (safe, portable stubs using iSH’s pasteboard integration if available, or fall back to file bridge):
+
+```sh
+#!/bin/sh
+# pbcopy
+cat > "$HOME/.cache/iosish.clipboard"
+# best-effort: try iSH pasteboard hook if present
+command -v ish-clipboard-copy >/dev/null 2>&1 && ish-clipboard-copy < "$HOME/.cache/iosish.clipboard" || true
+```
+
+```sh
+#!/bin/sh
+# pbpaste
+# best-effort: try iSH pasteboard hook if present
+if command -v ish-clipboard-paste >/dev/null 2>&1; then
+  ish-clipboard-paste
+else
+  cat "$HOME/.cache/iosish.clipboard" 2>/dev/null || true
+fi
+```
+
+Permissions:
+
+```sh
+chmod 755 ~/.local/bin/pbcopy ~/.local/bin/pbpaste
+```
+
+Ensure PATH:
+
+```sh
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+---
+
+# Phase 5 — File Bridge (iOS Files)
+
+Shown if method includes file bridge.
+
+```text
+Use file bridge for clipboard?
+
+1) Yes (recommended fallback)
+2) No
+```
+
+```text
+Select bridge file location:
+
+1) Default (recommended)
+   /mnt/ios/clipboard.txt
+2) Custom path
+```
+
+If custom:
+
+```text
+Enter clipboard file path:
+[example: /mnt/ios/clipboard.txt]
+```
+
+## Implementation
+
+```sh
+mkdir -p "$(dirname "$CLIP_FILE")"
+touch "$CLIP_FILE"
+```
+
+Update helpers to use file:
+
+```sh
+# pbcopy (append/overwrite)
+cat > "$CLIP_FILE"
+
+# pbpaste
+cat "$CLIP_FILE"
+```
+
+---
+
+# Phase 6 — Aliases & Shortcuts
+
+```text
+Add clipboard aliases?
+
+1) Yes (recommended)
+2) No
+```
+
+If yes:
+
+```text
+Select aliases:
+
+[ ] copy = pbcopy
+[ ] paste = pbpaste
+[ ] clip = pbcopy
+[ ] showclip = pbpaste
+```
+
+Write to:
+
+```text
+~/.config/iosish/aliases.sh
+```
+
+---
+
+# Phase 7 — Editor Integration (optional)
+
+```text
+Integrate clipboard with editors?
+
+1) No
+2) Yes (recommended)
+```
+
+If yes:
+
+```text
+Select editors:
+
+[ ] vim
+[ ] nano
+```
+
+## Example (vim)
+
+Append to `~/.vimrc`:
+
+```vim
+" iOSiSH clipboard bridge
+nnoremap <leader>y :w !pbcopy<CR><CR>
+nnoremap <leader>p :r !pbpaste<CR>
+```
+
+---
+
+# Phase 8 — Safety Options
+
+```text
+Enable safety options:
+
+[ ] Truncate large clipboard writes (>1MB)
+[ ] Warn on empty paste
+[ ] Preserve newline endings
+```
+
+---
+
+# Phase 9 — Summary
+
+```text
+Clipboard Setup Summary
+
+Mode: helper commands + file bridge
+Commands: pbcopy / pbpaste
+Targets: primary user
+Bridge file: /mnt/ios/clipboard.txt
+Aliases: copy, paste
+Editor integration: vim
+
+1) Apply
+2) Go back and modify
+3) Cancel
+```
+
+---
+
+# Phase 10 — Verification
+
+```text
+Test clipboard now?
+
+1) Yes (recommended)
+2) No
+```
+
+Runs:
+
+```sh
+echo "hello from iOSiSH" | pbcopy
+pbpaste
+```
+
+Expected output:
+
+```text
+hello from iOSiSH
+```
+
+---
+
+# Phase 11 — Post-Setup Output
+
+```text
+Clipboard configured.
+
+Copy:
+  echo "text" | pbcopy
+
+Paste:
+  pbpaste
+
+Bridge file:
+  /mnt/ios/clipboard.txt
+```
+
+---
+
+# Recommended Defaults (iOSiSH)
+
+* Method: helper commands (`pbcopy/pbpaste`)
+* Add file bridge fallback
+* Target: primary user
+* Aliases: enabled
+* Editor integration: optional (off by default)
+
+---
+
+# Design Notes
+
+* Avoid relying on non-portable GUI hooks; always provide **file bridge fallback**.
+* Keep helpers **user-scoped** and idempotent.
+* Do not require OpenRC; runtime-only feature.
+* Ensure `~/.local/bin` is in PATH for all targeted users.
+
+---
+
+If you want, I can package this into a **`clipboard.sh` module** with detection (whether iSH pasteboard helpers exist), clean installs, and uninstall/rollback.
+
+- 7) OpenRC
+- For iSH (Alpine), OpenRC is **usable but constrained**. You should not treat it like a full init system—use it selectively for services that actually make sense in a mobile/emulated environment.
+
+Below is a **curated, practical set of OpenRC-related packages and services** for your installer.
+
+---
+
+# 🧱 Core OpenRC Stack (required baseline)
+
+Install these first:
+
+```sh
+apk add openrc busybox-initscripts
+```
+
+## What they provide
+
+| Package               | Purpose                                        |
+| --------------------- | ---------------------------------------------- |
+| OpenRC                | service management                             |
+| `busybox-initscripts` | base init scripts (networking, hostname, etc.) |
+
+---
+
+# ⚙️ Recommended Core Services
+
+These are the only ones that are consistently useful in iSH.
+
+## 1. Hostname service
+
+```sh
+rc-update add hostname boot
+```
+
+**Why:**
+
+* Applies `/etc/hostname` at startup
+* Aligns with your persistent hostname setup
+
+---
+
+## 2. Local mount / filesystems
+
+```sh
+rc-update add localmount boot
+```
+
+**Why:**
+
+* Ensures basic filesystem readiness
+* Mostly harmless but good baseline
+
+---
+
+## 3. Device pseudo-services
+
+```sh
+rc-update add devfs boot
+rc-update add dmesg boot
+```
+
+**Reality in iSH:**
+
+* Limited usefulness (no real kernel devices)
+* Safe to include but optional
+
+---
+
+# 🌐 Networking (optional in iSH)
+
+## Typical Alpine:
+
+```sh
+apk add iproute2
+rc-update add networking boot
+```
+
+## In iSH:
+
+* Networking is handled by iOS
+* `networking` service is mostly **redundant**
+
+### Recommendation
+
+```text
+Do NOT enable networking service by default in iSH
+```
+
+---
+
+# 🔐 SSH (conditional)
+
+If user enabled SSH server:
+
+```sh
+apk add openssh-server
+rc-update add sshd default
+```
+
+## Important
+
+In iSH:
+
+* `sshd` may not persist across app restarts reliably
+* Often better to:
+
+```text
+Run manually: rc-service sshd start
+```
+
+### Installer recommendation
+
+Prompt:
+
+```text
+Start SSH automatically?
+
+1) Yes (OpenRC)
+2) No (manual start recommended)
+```
+
+Default: **manual**
+
+---
+
+# ⏱️ Logging (optional)
+
+```sh
+apk add busybox-syslog
+rc-update add syslog boot
+```
+
+## Value
+
+* Basic logging via syslogd
+* Useful for debugging services
+
+## Limitation in iSH
+
+* Logs are minimal
+* No real kernel logs
+
+---
+
+# 🔄 Cron (useful)
+
+```sh
+apk add cronie
+rc-update add crond default
+```
+
+## Why it’s good
+
+* Works well in iSH
+* Useful for:
+
+  * periodic tasks
+  * updates
+  * scripts
+
+---
+
+# 🧪 What NOT to install (important)
+
+Avoid these in iSH:
+
+| Service          | Why                           |
+| ---------------- | ----------------------------- |
+| `udev` / `eudev` | no real hardware              |
+| `acpid`          | no ACPI                       |
+| `hwdrivers`      | irrelevant                    |
+| `modprobe`       | no kernel modules             |
+| `networkmanager` | overkill, won’t work properly |
+
+---
+
+# 🧠 Recommended OpenRC Profile for iOSiSH
+
+## Minimal (recommended default)
+
+```sh
+apk add openrc busybox-initscripts
+
+rc-update add hostname boot
+rc-update add localmount boot
+```
+
+---
+
+## Standard (balanced)
+
+```sh
+apk add openrc busybox-initscripts busybox-syslog cronie
+
+rc-update add hostname boot
+rc-update add localmount boot
+rc-update add syslog boot
+rc-update add crond default
+```
+
+---
+
+## Full (only if user wants services)
+
+```sh
+apk add openrc busybox-initscripts busybox-syslog cronie openssh-server
+
+rc-update add hostname boot
+rc-update add localmount boot
+rc-update add syslog boot
+rc-update add crond default
+rc-update add sshd default
+```
+
+---
+
+# 🔧 Installer Prompt Design (recommended)
+
+```text
+Configure OpenRC services?
+
+1) Minimal (recommended)
+2) Standard (logging + cron)
+3) Full (includes SSH server)
+4) Skip OpenRC setup
+```
+
+---
+
+## Optional advanced prompt
+
+```text
+Select additional services:
+
+[ ] sshd
+[ ] crond
+[ ] syslog
+[ ] devfs (low impact)
+```
+
+---
+
+# ⚠️ Critical iSH Reality
+
+OpenRC in iSH:
+
+* does NOT run automatically like a real init system
+* services may NOT persist across app restarts
+* must often be re-triggered manually
+
+### Best practice
+
+Add fallback in profile:
+
+```sh
+rc-status >/dev/null 2>&1 || true
+```
+
+Or explicitly:
+
+```sh
+rc-service crond start
+```
+
+---
+
+# 🧩 Best Design Decision for iOSiSH
+
+Treat OpenRC as:
+
+```text
+"Optional service manager layer"
+```
+
+NOT:
+
+```text
+"system boot dependency"
+```
+
+---
+
+# Summary
+
+## Install
+
+```sh
+apk add openrc busybox-initscripts
+```
+
+## Recommended services
+
+* hostname ✔
+* localmount ✔
+* crond ✔ (optional)
+* syslog ✔ (optional)
+* sshd ⚠ (manual preferred)
+
+## Avoid
+
+* hardware-related services
+* full networking stack
+* anything expecting real kernel interaction
+
+---
+
+## Next step
+
+If you want, I can:
+
+* build an **OpenRC module** for your installer
+* include fallback startup logic for iSH
+* integrate with SSH + hostname + cron
+
+Just say: **build openrc module**
+
+- 8) mandoc
+- # Man Docs Setup — Prompt Flow for iSH / Alpine
+
+## Phase 0 — Entry
+
+```text
+Manual Pages & Documentation
+
+1) Skip and continue
+2) Install basic man support (recommended)
+3) Install man support + package docs
+4) Advanced/manual setup
+```
+
+Recommended default:
+
+```text
+2) Install basic man support
+```
+
+---
+
+## Phase 1 — Man Tool Selection
+
+```text
+Choose manual page backend:
+
+1) mandoc (recommended for iSH)
+2) man-db (larger, not recommended for iSH)
+3) Skip man backend
+```
+
+Recommended:
+
+```text
+1) mandoc
+```
+
+Package install:
+
+```sh
+apk add mandoc mandoc-apropos man-pages less
+```
+
+Optional fallback:
+
+```sh
+apk add docs
+```
+
+---
+
+## Phase 2 — Documentation Scope
+
+```text
+Install package documentation?
+
+1) No, install man support only
+2) Install common docs only (recommended)
+3) Install -doc packages for currently installed packages where available
+4) Ask per package
+```
+
+Recommended default:
+
+```text
+2) Install common docs only
+```
+
+---
+
+## Phase 3 — Common Docs Pack
+
+Shown if common docs selected.
+
+```text
+Choose common documentation pack:
+
+1) Minimal docs
+2) Standard docs (recommended)
+3) Developer docs
+4) Full suggested docs
+```
+
+### Minimal
+
+```sh
+apk add apk-tools-doc busybox-doc
+```
+
+### Standard
+
+```sh
+apk add \
+  apk-tools-doc \
+  busybox-doc \
+  openssh-doc \
+  git-doc \
+  curl-doc \
+  wget-doc \
+  sudo-doc \
+  doas-doc
+```
+
+### Developer
+
+```sh
+apk add \
+  git-doc \
+  make-doc \
+  gcc-doc \
+  musl-doc \
+  mandoc-doc
+```
+
+### Full suggested
+
+```sh
+apk add \
+  apk-tools-doc \
+  busybox-doc \
+  openssh-doc \
+  git-doc \
+  curl-doc \
+  wget-doc \
+  sudo-doc \
+  doas-doc \
+  vim-doc \
+  nano-doc \
+  mandoc-doc \
+  musl-doc
+```
+
+---
+
+## Phase 4 — Install `-doc` for Currently Installed Packages
+
+Shown if selected.
+
+```text
+Install matching -doc packages for currently installed packages?
+
+1) Yes, install all available matching -doc packages
+2) Preview list first
+3) Ask per package
+4) Skip
+```
+
+Recommended:
+
+```text
+2) Preview list first
+```
+
+Implementation idea:
+
+```sh
+apk info | while read -r pkg; do
+  apk search -q "${pkg}-doc" | grep -x "${pkg}-doc"
+done
+```
+
+Safer version:
+
+```sh
+apk info \
+  | while read -r pkg; do apk search -q "${pkg}-doc"; done \
+  | sort -u
+```
+
+Then install:
+
+```sh
+apk add $DOC_PACKAGES
+```
+
+Important: do **not** assume every installed package has a matching `-doc` package.
+
+---
+
+## Phase 5 — Apropos / Search Database
+
+```text
+Configure man search database for apropos?
+
+1) Yes, build/update database now (recommended)
+2) No
+```
+
+Runs:
+
+```sh
+mandocdb
+```
+
+Test:
+
+```sh
+apropos ssh
+man sh
+```
+
+---
+
+## Phase 6 — Alias Setup
+
+```text
+Install man/doc aliases?
+
+1) Yes, user-level aliases only (recommended)
+2) Yes, system-wide aliases
+3) Yes, both user-level and system-wide
+4) No
+```
+
+Recommended:
+
+```text
+1) User-level aliases only
+```
+
+Suggested aliases:
+
+```sh
+alias h='man'
+alias mans='apropos'
+alias apro='apropos'
+alias what='whatis'
+alias manbuild='mandocdb'
+```
+
+---
+
+# Phase 7 — Optional APK Wrapper for Auto `-doc` Install
+
+```text
+Install optional APK documentation wrapper?
+
+When installing packages, this wrapper can also try to install matching -doc packages.
+
+1) No
+2) Yes, create apkdoc helper command (recommended)
+3) Yes, alias apk to wrapper (advanced, not recommended)
+```
+
+Recommended:
+
+```text
+2) Create apkdoc helper command
+```
+
+---
+
+## Safer helper command: `apkdoc`
+
+Creates:
+
+```text
+/usr/local/bin/apkdoc
+```
+
+Behavior:
+
+```text
+apkdoc add git curl
+```
+
+Runs:
+
+```sh
+apk add git curl
+apk add git-doc curl-doc
+mandocdb
+```
+
+Suggested implementation:
+
+```sh
+#!/bin/sh
+set -u
+
+if [ "$#" -lt 2 ]; then
+  echo "Usage: apkdoc add <package...>"
+  echo "Example: apkdoc add git curl openssh"
+  exit 2
+fi
+
+cmd="$1"
+shift
+
+case "$cmd" in
+  add)
+    apk add "$@"
+
+    doc_pkgs=""
+    for pkg in "$@"; do
+      if apk search -q "${pkg}-doc" | grep -qx "${pkg}-doc"; then
+        doc_pkgs="$doc_pkgs ${pkg}-doc"
+      fi
+    done
+
+    if [ -n "$doc_pkgs" ]; then
+      echo "Installing docs:$doc_pkgs"
+      apk add $doc_pkgs
+      command -v mandocdb >/dev/null 2>&1 && mandocdb || true
+    else
+      echo "No matching -doc packages found."
+    fi
+    ;;
+  *)
+    echo "Unsupported command: $cmd"
+    echo "Use: apkdoc add <package...>"
+    exit 2
+    ;;
+esac
+```
+
+---
+
+## Advanced alias option
+
+Only if user explicitly chooses alias mode:
+
+```sh
+alias apkadd='apkdoc add'
+```
+
+Avoid aliasing raw `apk` by default. It can break expected package-manager behavior.
+
+---
+
+# Phase 8 — Wrapper Behavior
+
+```text
+When matching -doc packages are available:
+
+1) Install automatically (recommended)
+2) Ask before installing
+3) Only show suggestions
+```
+
+Recommended:
+
+```text
+1) Install automatically
+```
+
+---
+
+# Phase 9 — Target Users
+
+```text
+Apply man/doc aliases to:
+
+1) Primary user only (recommended)
+2) Root only
+3) Both root and primary user
+4) All configured users
+```
+
+Recommended:
+
+```text
+3) Both root and primary user
+```
+
+---
+
+# Phase 10 — Verification
+
+```text
+Verify man docs setup now?
+
+1) Yes (recommended)
+2) No
+```
+
+Runs:
+
+```sh
+man man
+man apk
+apropos ssh
+whatis ls
+```
+
+---
+
+# Phase 11 — Summary
+
+```text
+Man Docs Setup Summary
+
+Backend: mandoc
+Packages:
+  mandoc
+  mandoc-apropos
+  man-pages
+  less
+
+Docs:
+  Common docs: standard
+  Existing package docs: preview/install selected
+
+Search database:
+  mandocdb enabled
+
+Aliases:
+  h = man
+  mans = apropos
+  manbuild = mandocdb
+
+APK doc wrapper:
+  apkdoc enabled
+  raw apk unchanged
+
+1) Apply setup
+2) Go back and modify
+3) Cancel
+```
+
+---
+
+# Recommended iOSiSH Defaults
+
+```text
+Backend: mandoc
+Install: mandoc mandoc-apropos man-pages less
+Common docs: standard
+Existing package docs: preview first
+Wrapper: apkdoc helper, do not override apk
+Aliases: user-level for primary + root
+Run mandocdb: yes
+```
+
+Best design choice: use `apkdoc add <packages>` instead of replacing `apk`. It gives users doc-aware installs without making Alpine package management unpredictable.
+
+- 9) Webrowser
+# w3m Web Browser Setup — Prompt Flow for iSH / Alpine
+
+## Phase 0 — Entry
+
+```text
+Terminal Web Browser Setup
+
+1) Skip and continue
+2) Install and configure w3m (recommended)
+3) Advanced/manual setup
+```
+
+---
+
+## Phase 1 — Install Packages
+
+```text
+Install w3m and browser support packages?
+
+1) Yes, install w3m + TLS certificates (recommended)
+2) Install w3m only
+3) Configure existing w3m installation only
+```
+
+Recommended:
+
+```sh
+apk add w3m ca-certificates
+update-ca-certificates
+```
+
+Optional extras:
+
+```text
+Install optional browser helpers?
+
+[ ] less
+[ ] file
+[ ] xdg-utils
+[ ] urlview
+```
+
+---
+
+## Phase 2 — Target Users
+
+```text
+Configure w3m for:
+
+1) Primary user only (recommended)
+2) Root only
+3) Both root and primary user
+4) All configured users
+```
+
+---
+
+## Phase 3 — Config Directory
+
+```text
+Create w3m config directory?
+
+1) Yes, create ~/.w3m (recommended)
+2) Use existing ~/.w3m
+3) Backup existing config and recreate
+```
+
+Creates:
+
+```sh
+mkdir -p "$HOME/.w3m"
+```
+
+---
+
+## Phase 4 — Homepage
+
+```text
+Choose homepage:
+
+1) iSH Wiki (recommended)
+   https://github.com/ish-app/ish/wiki
+2) GitHub
+   https://github.com
+3) DuckDuckGo HTML
+   https://duckduckgo.com/html
+4) Google
+   https://www.google.com
+5) Custom homepage
+6) Blank homepage
+```
+
+If custom:
+
+```text
+Enter homepage URL:
+[example: https://github.com/ish-app/ish/wiki]
+```
+
+Writes:
+
+```text
+home https://github.com/ish-app/ish/wiki
+```
+
+or, depending on your existing config style:
+
+```text
+home=https://github.com/ish-app/ish/wiki
+```
+
+For your current iOSiSH convention, use:
+
+```sh
+printf '%s\n' 'home=https://github.com/ish-app/ish/wiki' >> "$HOME/.w3m/config"
+```
+
+---
+
+## Phase 5 — Search Engine
+
+```text
+Choose default search engine:
+
+1) DuckDuckGo HTML (recommended)
+   https://duckduckgo.com/html/?q=%s
+2) Google
+   https://www.google.com/search?q=%s
+3) Brave Search
+   https://search.brave.com/search?q=%s
+4) Startpage
+   https://www.startpage.com/sp/search?query=%s
+5) Custom search URL
+6) Skip search shortcut
+```
+
+If custom:
+
+```text
+Enter search URL template.
+
+Use %s where the query should go:
+[example: https://duckduckgo.com/html/?q=%s]
+```
+
+---
+
+## Phase 6 — Search Helper Command
+
+```text
+Create terminal search helper?
+
+1) Yes, create websearch command (recommended)
+2) No
+```
+
+Creates:
+
+```text
+~/.local/bin/websearch
+```
+
+Example helper:
+
+```sh
+#!/bin/sh
+set -u
+
+SEARCH_URL='https://duckduckgo.com/html/?q=%s'
+
+if [ "$#" -eq 0 ]; then
+  echo "Usage: websearch <query>"
+  exit 2
+fi
+
+query=$(printf '%s' "$*" | sed 's/ /+/g')
+url=$(printf '%s' "$SEARCH_URL" | sed "s/%s/$query/g")
+
+exec w3m "$url"
+```
+
+---
+
+## Phase 7 — Browser Aliases
+
+```text
+Install w3m aliases?
+
+1) Yes, recommended aliases
+2) Choose aliases manually
+3) No
+```
+
+Recommended aliases:
+
+```sh
+alias web='w3m'
+alias ishwiki='w3m https://github.com/ish-app/ish/wiki'
+alias ghub='w3m https://github.com'
+alias search='websearch'
+alias google='w3m https://www.google.com'
+```
+
+Optional:
+
+```sh
+alias ddg='w3m https://duckduckgo.com/html'
+alias w3mconf='$EDITOR ~/.w3m/config'
+```
+
+---
+
+## Phase 8 — Browser Defaults
+
+```text
+Set w3m as default terminal browser?
+
+1) Yes, set BROWSER=w3m
+2) No
+```
+
+If yes, add to environment:
+
+```sh
+export BROWSER=w3m
+```
+
+---
+
+## Phase 9 — Config Safety
+
+```text
+Existing w3m config handling:
+
+1) Merge settings safely (recommended)
+2) Backup and overwrite
+3) Leave existing config unchanged
+```
+
+Recommended behavior:
+
+```sh
+cp "$HOME/.w3m/config" "$HOME/.w3m/config.bak.$(date +%Y%m%d-%H%M%S)"
+```
+
+before major edits.
+
+---
+
+## Phase 10 — Verification
+
+```text
+Test w3m setup now?
+
+1) Yes, open homepage
+2) Yes, run search test
+3) No
+```
+
+Test commands:
+
+```sh
+w3m https://github.com/ish-app/ish/wiki
+websearch ish alpine linux
+```
+
+---
+
+## Phase 11 — Summary
+
+```text
+w3m Setup Summary
+
+Packages:
+  w3m
+  ca-certificates
+
+Targets:
+  primary user
+
+Homepage:
+  https://github.com/ish-app/ish/wiki
+
+Search engine:
+  DuckDuckGo HTML
+
+Helpers:
+  websearch enabled
+
+Aliases:
+  web
+  ishwiki
+  ghub
+  search
+  google
+
+Default browser:
+  BROWSER=w3m
+
+1) Apply setup
+2) Go back and modify
+3) Cancel
+```
+
+---
+
+## Recommended iOSiSH Defaults
+
+```text
+Install: w3m ca-certificates
+Run: update-ca-certificates
+Target: primary user
+Homepage: iSH Wiki
+Search engine: DuckDuckGo HTML
+Helper: websearch
+Aliases: enabled
+Default browser: yes
+Config mode: merge safely
+```
+
+Best default command set:
+
+```sh
+apk add w3m ca-certificates
+update-ca-certificates
+mkdir -p ~/.w3m
+printf '%s\n' 'home=https://github.com/ish-app/ish/wiki' >> ~/.w3m/config
+```
+
+
+
+
+
+
+
+Best first-install order
+1. apk update && apk upgrade
+2. create normal user
+3. install doas or sudo
+4. install baseline packages
+5. configure shell + editor
+6. configure SSH/Git
+7. configure OpenRC only for services you actually use
+8. mount iOS storage
+9. add aliases/helpers
+10. set up backups
+
