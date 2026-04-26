@@ -1,0 +1,573 @@
+# Agent Handoff Guide: Turning the Draft into a Launch-Ready iSH TUI
+
+---
+
+## 1. The role
+
+```text
+Act as a senior Alpine Linux, iSH, POSIX shell, TUI, and systems installer architect.
+
+Your job is to turn my iSH TUI draft into a full-featured, production-quality TUI installer for iSH on Alpine Linux x86.
+
+Prioritize correctness, maintainability, idempotency, safe config writes, iSH compatibility, and real-world launch readiness.
+```
+
+---
+
+## 2. Share the source draft
+
+Give the agent:
+
+```text
+Main draft:
+https://github.com/ADHD-exe/ish-tui-draft/blob/main/iSH-TUI-Draft
+
+Use this draft as the source of truth.
+Do not redesign the architecture unless there is a clear technical blocker.
+```
+
+---
+
+## 3. Share the locked architecture rules
+
+```text
+The locked module order is:
+
+1. Preflight
+2. System Identity
+3. Users
+4. Privileges
+5. Filesystem Layout
+6. Core Packages
+7. Shell Installation
+8. Global Registry System
+9. Docs
+10. SSH
+11. Git
+12. Mounts
+13. Clipboard
+14. w3m
+15. Shell Rendering
+16. OpenRC
+17. Validation
+
+Do not reorder these modules unless you explain the technical dependency reason first.
+```
+
+---
+
+## 4. Share the non-negotiable implementation rules
+
+```text
+Non-negotiable rules:
+
+This project is developed on multiple host systems, including:
+- CachyOS (Arch-based)
+- GitHub Actions / CI environments
+- Other Linux distributions
+However, the ONLY supported runtime target is:
+→ iSH (Alpine Linux x86, BusyBox ash environment)
+If implementation conflicts with the architecture draft, stop and report the conflict instead of inventing a workaround.
+
+Rules:
+
+0. First-Run Dependency Rule
+   - The TUI must launch on a fresh iSH install without requiring any packages to be installed first.
+   - The launcher must run with /bin/sh.
+   - The initial menu must use only POSIX shell and BusyBox-compatible commands.
+   - Do not require bash, dialog, whiptail, gum, fzf, Python, ncurses, or tput for first launch.
+   - Additional packages may be installed after the TUI launches through the Preflight and module system.
+
+1. Runtime Compatibility is Mandatory
+   - All runtime behavior must work on Alpine Linux x86 in iSH.
+   - Assume /bin/sh is BusyBox ash, not bash.
+   - Scripts must be POSIX-compliant.
+
+2. No Host Assumptions
+   - Do not use Arch-specific tools (pacman, systemd, etc.)
+   - Do not rely on glibc-specific behavior.
+   - Do not assume x86_64 environment.
+   - Do not depend on host filesystem layout.
+
+3. Development Environment is Irrelevant to Runtime
+   - Code may be written/tested on CachyOS or CI,
+     but must behave identically in iSH.
+   - Any feature that works on the host but not in iSH must be rejected.
+
+4. Package Manager Constraint
+   - Use apk exclusively for runtime package operations.
+   - Do not reference or support other package managers.
+
+5. Shell Compatibility
+   - All scripts must run under:
+     /bin/sh (BusyBox ash)
+   - Bash-specific syntax is not allowed in core logic.
+   - Bash/Zsh/Fish configs may be generated, but not required for execution.
+
+6. Service Model Constraint
+   - OpenRC must be treated as session-managed.
+   - Do not assume real boot persistence.
+
+7. CI / GitHub Requirements
+   - CI may validate syntax, structure, and logic,
+     but MUST NOT introduce non-Alpine dependencies.
+   - CI scripts must not change runtime assumptions.
+
+8. Architecture Authority
+   - The iSH runtime environment defines all constraints.
+   - Development environments must conform to it, not the other way around.
+
+9. Build the execution engine before implementing modules.
+10. Every module must follow:
+   detect → plan → confirm → apply → validate → save_state
+11. No module may directly edit shell config files.
+12. Only Shell Rendering may write:
+   - ~/.bashrc
+   - ~/.zshrc
+   - ~/.config/fish/config.fish
+13. Aliases, env vars, and helper functions must go through registries first.
+14. SSH owns key generation.
+15. Git consumes SSH state only.
+16. OpenRC is session-managed in iSH, not true boot persistence.
+17. Do not install build-base during preflight.
+18. All package choices must work on iSH Alpine x86.
+19. iSH Validation Rule
+   - Everything currently listed in the draft is assumed tested and working in iSH Alpine x86.
+   - Do not add unverified features, packages, or behaviors.
+   - Any new feature must be verified in iSH before becoming a default.
+   - If a feature works on CachyOS or CI but fails in iSH, iSH behavior wins.
+20. Do not remove existing code without explaining what is removed and why.
+21. Always backup user config files before writing.
+22. All writes must be idempotent.
+23. User prompts must use numbered choices only.
+24. “No” choices must say “Skip and continue.”
+25. Do not ask compatibility prompts; compatibility is handled internally.
+
+```
+
+---
+
+## 5. Tell the agent what to build first
+
+```text
+Do not start by writing all modules.
+
+First build the foundation:
+
+Phase 1:
+- repo file structure
+- TUI navigation shell
+- state read/write system
+- registry read/write system
+- logging system
+- module runner
+- backup helper
+- validation helper
+
+```
+
+---
+
+## 6. Required repo structure
+
+Tell the agent to create this structure:
+
+```text
+ish-tui/
+├── ish-tui.sh
+├── README.md
+├── LICENSE
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── MODULE_ORDER.md
+│   ├── STATE.md
+│   ├── REGISTRIES.md
+│   ├── TESTING.md
+│   └── RELEASE_CHECKLIST.md
+├── lib/
+│   ├── ui.sh
+│   ├── state.sh
+│   ├── registry.sh
+│   ├── logging.sh
+│   ├── packages.sh
+│   ├── backup.sh
+│   ├── validation.sh
+│   └── module_runner.sh
+├── modules/
+│   ├── 00_preflight.sh
+│   ├── 01_system_identity.sh
+│   ├── 02_users.sh
+│   ├── 03_privileges.sh
+│   ├── 04_filesystem_layout.sh
+│   ├── 05_core_packages.sh
+│   ├── 06_shell_installation.sh
+│   ├── 07_global_registry.sh
+│   ├── 08_docs.sh
+│   ├── 09_ssh.sh
+│   ├── 10_git.sh
+│   ├── 11_mounts.sh
+│   ├── 12_clipboard.sh
+│   ├── 13_w3m.sh
+│   ├── 14_shell_rendering.sh
+│   ├── 15_openrc.sh
+│   └── 16_validation.sh
+└── tests/
+    ├── smoke.sh
+    ├── syntax.sh
+    ├── idempotency.sh
+    └── module_order.sh
+```
+
+---
+
+## 7. Required state paths
+
+```text
+Runtime state must use:
+
+/var/lib/iosish/state/users.conf
+/var/lib/iosish/state/shells.conf
+/var/lib/iosish/state/packages.conf
+/var/lib/iosish/state/features.conf
+/var/lib/iosish/state/services.conf
+
+Logs:
+/var/lib/iosish/logs/install.log
+
+Registries:
+/var/lib/iosish/registry/aliases.conf
+/var/lib/iosish/registry/env.conf
+/var/lib/iosish/registry/helpers.conf
+```
+
+---
+
+## 8. Required TUI screens
+
+Tell the agent:
+
+```text
+The TUI home screen must include:
+
+1. Quick Setup
+2. Guided Setup
+3. Manual Module Selection
+4. Repair / Validate Existing Setup
+5. Export Setup Report
+6. Exit
+```
+
+Each module screen must use this format:
+
+```text
+[Module Name]
+
+Status:
+- Not started / Complete / Failed / Skipped
+
+What this module does:
+- ...
+
+Actions:
+1. Run module
+2. Review planned changes
+3. Change options
+4. Skip and continue
+5. Back
+```
+
+---
+
+## 9. Required module lifecycle
+
+Every module must implement these functions:
+
+```sh
+module_detect
+module_plan
+module_confirm
+module_apply
+module_validate
+module_save_state
+```
+
+The runner must execute:
+
+```text
+detect → plan → confirm → apply → validate → save_state
+```
+
+---
+
+## 10. First implementation milestone
+
+Tell the agent to stop after this milestone:
+
+```text
+Milestone 1 deliverables:
+
+- ish-tui.sh launches
+- home menu works
+- module runner exists
+- state helper exists
+- registry helper exists
+- logging helper exists
+- preflight module exists
+- syntax tests pass
+- smoke test runs without modifying critical files unexpectedly
+
+Stop and report before implementing the remaining modules.
+```
+
+---
+
+## 11. Second implementation milestone
+
+```text
+Milestone 2:
+
+Implement:
+1. System Identity
+2. Users
+3. Privileges
+4. Filesystem Layout
+5. Core Packages
+
+Requirements:
+- all prompts numbered
+- all writes idempotent
+- all config writes backed up
+- state files updated
+- validation per module
+```
+
+---
+
+## 12. Third implementation milestone
+
+```text
+Milestone 3:
+
+Implement:
+1. Shell Installation
+2. Global Registry System
+3. Docs
+4. SSH
+5. Git
+
+Important:
+- Shell Installation must not render configs.
+- SSH owns key generation.
+- Git must not generate SSH keys.
+```
+
+---
+
+## 13. Fourth implementation milestone
+
+```text
+Milestone 4:
+
+Implement:
+1. Mounts
+2. Clipboard
+3. w3m
+4. Shell Rendering
+5. OpenRC
+6. Final Validation
+
+Important:
+- Clipboard depends on mounts but must have fallback behavior.
+- w3m aliases go to registry.
+- Shell Rendering is the only module that writes shell configs.
+- OpenRC must be described as session-managed.
+```
+
+---
+
+## 14. Launch-readiness checklist
+
+The agent must not call it launch-ready until:
+
+```text
+- All shell scripts pass sh syntax check
+- TUI runs in iSH
+- apk operations are guarded
+- no x86_64-only packages are used
+- no systemd assumptions exist
+- no duplicate aliases are generated
+- rerunning installer does not duplicate config blocks
+- backup files are created before config writes
+- failed modules can be retried
+- logs are written
+- final report is generated
+- README has install/run instructions
+- TESTING.md documents iSH manual testing
+```
+
+---
+
+## 15. Exact prompt to give the agent
+
+Copy/paste this:
+
+```text
+Use this draft as the source of truth:
+https://github.com/ADHD-exe/ish-tui-draft/blob/main/iSH-TUI-Draft
+
+Build a production-quality TUI installer for iSH Alpine Linux x86.
+
+Do not start by implementing every module. First create the execution engine, repo structure, state system, registry system, logging, backup helpers, validation helpers, and a working home menu.
+
+Follow this exact module order:
+
+1. Preflight
+2. System Identity
+3. Users
+4. Privileges
+5. Filesystem Layout
+6. Core Packages
+7. Shell Installation
+8. Global Registry System
+9. Docs
+10. SSH
+11. Git
+12. Mounts
+13. Clipboard
+14. w3m
+15. Shell Rendering
+16. OpenRC
+17. Validation
+
+Every module must follow:
+
+detect → plan → confirm → apply → validate → save_state
+
+Rules:
+- The TUI must launch on fresh iSH without installing anything first.
+- The first-run launcher and menu must use POSIX /bin/sh and BusyBox-compatible commands only.
+- Do not require bash or external TUI dependencies before first launch.
+- No module may directly edit shell configs.
+- Only Shell Rendering may write .bashrc, .zshrc, or fish config.
+- Aliases/env/helpers must go through registries.
+- SSH owns key generation.
+- Git consumes SSH state only.
+- OpenRC is session-managed in iSH.
+- Do not install build-base during preflight.
+- fish is supported and tested in iSH.
+- ssh and sshd are supported in iSH, but sshd persistence is session-dependent.
+- All package choices must work on iSH Alpine x86.
+- All prompts must use numbered choices.
+- “No” choices must say “Skip and continue.”
+- All writes must be idempotent.
+- Backup config files before modifying them.
+- Do not add new features unless explicitly requested.
+- Stop after each milestone and report what changed.
+- Maintain `.logs/progress.md` throughout the build.
+- Update it after every meaningful change so another agent can resume after a crash or handoff.
+
+Start with Milestone 1 only:
+- repo file structure
+- ish-tui.sh launcher
+- home menu
+- module runner
+- state helper
+- registry helper
+- logging helper
+- backup helper
+- validation helper
+- preflight module
+- syntax/smoke tests
+- backup helper 
+- .logs/progress.md exists and has initial status
+```
+Persistent Progress Log Rule
+
+The agent must maintain a durable project progress log so work can resume safely after crashes, disconnections, context loss, or agent handoff.
+
+Required file:
+.logs/progress.md
+
+Rules:
+
+1. Create `.logs/progress.md` immediately during Milestone 1.
+
+2. Update `.logs/progress.md` after every meaningful change, including:
+   - files created
+   - files modified
+   - functions added
+   - tests run
+   - test results
+   - bugs found
+   - bugs fixed
+   - decisions made
+   - blockers encountered
+   - unfinished work
+
+3. The log must make it clear:
+   - what has been completed
+   - what is currently in progress
+   - what has failed
+   - what still needs to be done
+   - where the next agent should resume
+
+4. The log must not replace Git history.
+   It is a human-readable recovery and handoff file.
+
+5. If a step fails, the agent must record:
+   - exact command run
+   - exact failure or error message
+   - suspected cause
+   - attempted fix, if any
+   - recommended next action
+
+6. Before stopping at any milestone, the agent must update `.logs/progress.md` with:
+   - milestone status
+   - completed files
+   - incomplete files
+   - tests run
+   - known issues
+   - next recommended step
+
+7. If work is interrupted, the next agent must read `.logs/progress.md` before making changes.
+
+Required log format:
+
+# iSH TUI Progress Log
+
+## Current Status
+- Milestone:
+- Overall state:
+- Last completed step:
+- Current blocker:
+- Next recommended action:
+
+## Completed Work
+- [ ] ...
+
+## In Progress
+- [ ] ...
+
+## Known Issues
+- [ ] ...
+
+## Test Results
+| Date | Test | Command | Result | Notes |
+|---|---|---|---|---|
+
+## File Change Log
+| Date | File | Change | Reason |
+|---|---|---|---|
+
+## Decisions
+| Date | Decision | Reason |
+|---|---|---|
+
+## Recovery Notes
+- If interrupted, resume from:
+- Do not redo:
+- Must verify before continuing:
+
+---
+
+
